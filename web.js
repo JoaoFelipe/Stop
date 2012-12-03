@@ -21,8 +21,6 @@ var io                   = require('socket.io'),
     chat_inside          = require('./chat_inside').chat_inside,
     app                  = express(),
     server               = null,
-    MemoryStore          = express.session.MemoryStore,
-    sessionStore         = new MemoryStore(),
     User                 = require('./user').User;
     
 app.configure(function () {
