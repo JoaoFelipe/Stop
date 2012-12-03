@@ -1,208 +1,959 @@
-(function (){
-	var address = 'http://127.0.0.1:8080';
-	var socket;
-	var big_screen = null;
+var address = 'http://127.0.0.1:8080';
+var socket;
+var big_screen = null;
+var root = 0;
+var home = 1;
+var room = 2;
+var showing_mode = root;
+var sub_mode = -1;
+var res = 0;
+var hr = 0, mr = 1, lr = 2;
+var base_dict = {};
+var set_dict = {};
+var set_root_dict = {};
+var set_home_dict = {};
+var set_room_dict = {};
+var keep_dict = {};
+var keep_root_dict = {};
+var keep_home_dict = {};
+var keep_room_dict = {};
+var current_user = -1;
+var timer_interval = setInterval(function (){ return false; }, 500);
+var stop_enabled = false;
 
-	function high_rsolution() {
-		return  ($(window).width()>= 768);
+var current_mode = '.root';
+var modes = ['.root', '.home', '.room'];
+
+var chat = 0, new_room = 1;
+var home_divs = ['.paper3', '.paper4', '.paper5'];
+var home_modes = {
+	0: ['.paper3', '.paper4'],
+	1: ['.paper5', '.paper4']
+}
+
+var rooms = [];
+
+var waiting = 0, playing = 1, checking = 2, scores = 3;
+var room_divs = ['.paper6', '.paper7', '.paper8'];
+var room_modes = {
+	0: ['.paper6'],
+	1: ['.paper7'],
+	2: ['.paper8'],
+	3: ['.paper6'],
+	4: ['.paper6'],
+}
+
+function debug() {
+	socket.emit("debug");
+};
+
+
+function update_width(size) {
+	return function() {
+		var input = $(this),
+			parent = input.parent();
+		input.width(parent.width() - size);
+	}
+};
+
+$.fn.serializeObject = function() {
+    var o = {};
+    var a = this.serializeArray();
+    $.each(a, function() {
+        if (o[this.name] !== undefined) {
+            if (!o[this.name].push) {
+                o[this.name] = [o[this.name]];
+            }
+            o[this.name].push(this.value || '');
+        } else {
+            o[this.name] = this.value || '';
+        }
+    });
+    return o;
+};
+
+$.fn.transition_hide = function(func) {
+	this.clearQueue();
+	this.slice(1).transition({left:"-200%"}, "1000");
+	$(this[0]).transition({left:"-200%"}, "1000", func);
+};
+
+$.fn.update_width = function(size) {
+	this.each(update_width(size));
+};
+
+$.fn.full_filled = function() {
+	var result = true;
+	this.find(':input').each(function() {
+	   if($(this).val() === "") {
+	   		result = false;
+	   }
+	});
+	return result;
+};
+
+function errorMessage(data) {
+	alert(data.message);
+};
+
+function disable() {
+	return false;
+};
+
+function key_submit(func) {
+	return function(e) {
+		if (e.which == 13) {
+			func(this);
+			return false;
+		}
 	};
+};
 
-	function low_resolution() {
-		return  ($(window).width()<= 480);
-	};
+function submit_login(event) {
+	var data = $(".login_form").serialize();
+	socket.emit("login", data);
+};
 
-	function initialize_hr() {
-		$('.paper').css("min-height", "0");
-		$('.paper').css("top", "10%");
-		$('.paper1').css("left", "15%");
-		$('.paper2').css("left", "31.5%");
-		$('.paper3').css("left", "48%");
+function submit_exit(event) {
+	socket.emit("exit");
+};
 
-		$('.paper3').transition({ rotate: '20deg' });
-		$('.paper1').transition({ rotate: '-20deg' });
-		$('body').css("overflow-x", "hidden");	
-		$(".tooltips").show();
-	};
+function create_new_room(event) {
+	var data = $(".create_room_form").serializeObject();
+	socket.emit("create_room", data);
+	return false;
+};
 
-	function deinitialize_hr() {
+function submit_exit_room(event) {
+	socket.emit("exit_room");
+};
+
+function submit_join_room(event) {
+	var id = this.id.split('_')[1];
+	socket.emit("join_room", {id: id});
+};
+
+function submit_start_game(event) {
+	socket.emit("start_game");
+}
+
+function submit_ready(event) {
+	socket.emit("ready");
+}
+
+function submit_stop(event) {
+	if (stop_enabled) {
+		var data = $(".game_form").serializeObject();
+		socket.emit("stop", data);
+	}
+	return false;
+}
+
+function submit_change_name() {
+	var name = $('.change_name').val();
+	socket.emit("change_name", name);
+}
+
+function search_room() {
+	var search_field = $('.search_room').val();
+	$('ul.rooms').html("");
+	for (var room_index in rooms) {
+		var room = rooms[room_index];
+		if (room.name.indexOf(search_field) == -1) {
+			continue;
+		}
+		$('ul.rooms').append(
+			'<li class="room_row">' +
+				'<a href="#" class="room_link" id="room_' + room.id + '">' +
+					'<span class="room_name">' + room.name + '</span>' +
+					'<span class="room_players">' + room.user_count + '/' + room.max_players + '</span>' +
+					'<span class="room_status">' + room.current_round + '/' + room.rounds + '</span>' +
+				'</a>' +
+			'</li>'
+		);
+	}
+	$('.page_container').pajinate();
+		
+};
+
+function sub_mode_visible(elements, modes) {
+	for (var i = 0; i < elements.length; i++) {
+		var element = elements[i];
+		var found = false;
+		for (var j = 0; j < modes[sub_mode].length; j++) {
+			found = (found || (element == modes[sub_mode][j]));
+		}
+		$(element).toggle(found);
+	}
+};
+
+function set_mode(modes, mode) {
+	current_mode = mode;
+	$(mode).css("left", "-100%");
+	for (var i = 0; i < modes.length; i++) {
+		$(modes[i]).toggle((modes[i] == mode)); 
+	}
+};
+
+
+function topmove() {
+	if (res == lr) {
+		$(".leftmove").hide();
+		$('.current_letter').css('left', '180px');
+		$(".tooltips").css('left', '10px');
+		$(".tooltips").css('top', '85px');
+		$(".exit").css('left', '230px');
+		$(".leftmove").show();
+	} else {
+		$(".leftmove").hide();
+		$('.current_letter').css('left', '200px');
+		$(".exit").css('left', ($(document).width() - 250) + 'px');
+		$(".tooltips").css('left', ($(document).width() - 200) + 'px');
+		$(".tooltips").css('top', '15px');
+		$(".leftmove").show();
+	}
+}
+
+
+
+function base() {	
+	var pos_top = $(".chat_inside").position().top;
+
+	$(['.chat_outside', '.text_outside', '.chat_inside', '.text_inside', '.paper_form input[type="text"]', 
+		'.paper_form input[type="password"]', ".create_room_categories_text", ".search_room"]).each(function(){
+		$(this+ '').update_width(30);
+	});
+
+	$('.create_form_input').update_width(120);
+
+
+    $([[".create_room_categories_text",".paper5"], ['.chat_outside', '.paper3']]).each(function(){
+    	var text = $(this[0] + ''), paper = $(this[1] + '');
+    	text.css('height', paper.height() - text.position().top - 50 + 'px'); 
+    	paper.css('max-height', text.position().top + 300 + 'px');
+	    paper.css('height', 'auto');
+	    if (paper.is(':visible')) {
+	    	if ($('.paper4').height() > paper.height()) {
+	    		paper.css('max-height', $('.paper4').height());
+	    		paper.height($('.paper4').height());
+	    		text.css('height', paper.height() - text.position().top - 50 + 'px'); 
+    	
+	    	} else {
+	    		$('.paper4').height(paper.height());	
+	    	}
+	    	
+	    }
+    });
+     
+    
+
+
+    $(".chat_inside").each(function(){
+    	var obj = $(this);
+    	obj.css('height', obj.parents('.paper').height() - obj.position().top - 60 +'px');
+
+    });
+    $(['.paper6', '.paper7', '.paper8']).each(function() {
+    	var str = this + '';
+    	$(str).css('max-height', $(str + ' .tabbable').position().top + Math.max(500,  $(str + ' .users_list').height() + 100) + "px");
+		$(str).css('height', 'auto');
+		$(str + ' .paper_title').update_width(120);
+    });
+
+    $(".paper_title").each(function() {
+		var obj = $(this);
+		if (obj.height() > 40) {
+			obj.css('line-height', 40 + "px");
+			obj.css('margin', "0");
+		} else {
+			obj.css('line-height', 32 + "px");
+			obj.css('margin', "0 0 8px");
+		}
+	});
+   
+	topmove();
+	$('.exit_button').toggle((showing_mode != root));
+};
+
+function base_hr() {
+	$('.paper').css("min-height", "0");
+	$('.paper').css("top", "90px");
+	topmove();
+	$('body').css("overflow-x", "hidden");	
+	$(".tooltips").css('top', '15px');
+	$('.paper').css("width", '40%');
+	$('.paper').each(function() {
+		var obj = $(this),
+			width = obj.width();
+		obj.css('min-height', Math.min(width * 1.3, $(window).height() - obj.position().top - 50) + 'px');
+		
+	});
+
+	base();
+};
+
+function base_mr() {
+	$('body').css("overflow-x", "auto");	
+	topmove();
+	$('.paper').css("height", "auto");
+	$('.paper').css("min-height", "0");
+	$('.content').height($(document).height());
+	$('.content').css('height', 'auto');
+	var width = $(window).width(), 
+		h = $(document).height() - 240,
+		w = width - 110;
+	$('.paper').css("min-height", h +"px");
+	$('.paper').css("width", w +"px");
+	base();
+};
+
+function base_lr() {
+	$('body').css("overflow-x", "auto");	
+	topmove();
+	$('.paper').css("height", "auto");
+	$('.paper').css("min-height", "0");
+	$('.content').height($(document).height());
+	$('.content').css('height', 'auto');
+	var width = $(window).width(), 
+		h = $(document).height() - 240,
+		w = width - 70;
+	$('.paper').css("min-height", h +"px");
+	$('.paper').css("width", w +"px");
+	base();
+};
+
+function set_root_hr(){
+	
+	$('.paper').transition_hide(function() {
+		base_hr();
+		showing_mode = root;
+		set_mode(modes, '.root');
+		$('.paper2').transition({"left": "31.5%"});
+		$('.paper1').transition({"left": "15%", "rotate": "-20deg"});
+		base_hr();
+	});
+};
+
+function keep_root_hr(){
+	base_hr();
+	$('.paper2').css('left', '31.5%');
+	$('.paper1').css('left', '15%');
+	$('.paper1').css('rotate',  "-20deg");	
+	base_hr();
+};
+
+function set_home_hr(){
+	
+	$('.paper').transition_hide(function() {
+		base_hr();
+		showing_mode = home;
+		set_mode(modes, '.home');
+		sub_mode_visible(home_divs, home_modes);
+		$('.paper3').transition({"left": "2%"});
+		$('.paper5').transition({"left": "2%"});
+		$('.paper4').transition({"left": "52%"});
+		base_hr();
+	});
+};
+
+function keep_home_hr(){
+	base_hr();
+	sub_mode_visible(home_divs, home_modes);
+	$('.paper3').css('left', '2%');
+	$('.paper5').css('left', '2%');
+	$('.paper4').css('left', '52%');
+	base_hr();
+};
+
+function set_room_hr(){
+	
+	$('.paper').transition_hide(function() {
+		base_mr();
+		showing_mode = room;
+		set_mode(modes, '.room');
+		sub_mode_visible(room_divs, room_modes);
+		$('.paper').css("top", "90px");
+		$('.paper').transition({"left": "30px"});
+		base_mr();
+	});
+};
+
+function keep_room_hr(){
+	base_mr();
+	sub_mode_visible(room_divs, room_modes);
+	$('.paper').css("top", "90px");
+	$('.paper').css("left", "30px");
+	base_mr();
+};
+
+function set_root_mr() {
+	
+	$('.paper').transition_hide(function() {
+		base_mr();
+		$('.paper1').css('z-index', 0);
+		$('.paper2').css('z-index', 2);
+		showing_mode = root;
+		set_mode(modes, '.root');
 		$('.paper1').css("top", "90px");
-		$('.paper2').css("top", "190px");
-		$('.paper3').css("top", "140px");
-		$('.paper3').transition({ rotate: '0deg' });
-		$('.paper1').transition({ rotate: '0deg' });
-		$('body').css("overflow-x", "auto");	
-		$(".tooltips").hide();
-	};
+		$('.paper2').css("top", "140px");
+		$('.paper1').transition({"rotate": "0"});
+		$('.paper').transition({"left": "30px"});
+		base_mr();
+	});
+};
 
-	function move_paper(paper1, paper2, paper3, rotate, left1, left2, left3, low_move_paper) {
-		return function() {
-			var p1 = $(this).parent().find("." + paper1),
-				p2 = $(this).parent().find("." + paper2),
-				p3 = $(this),
-				p2left = p2.position().left,
-				p3left = $(this).position().left;  
-			if (high_rsolution()) {
-				
-				p2.transition({ 
-					rotate: rotate,
-					left: left1
-				});
-				p3.transition({ 
-					rotate: '0deg',
-					left: left2
-				}, function() {
-					p1.css('z-index', 0);
-					p2.css('z-index', 1);
-					p3.css('z-index', 2);
-					p3.transition({ 
-						left: left3
-					});
-					p2.removeClass(paper2 + " active");
-					p2.addClass(paper3);
-					p3.removeClass(paper3);
-					p3.addClass(paper2 + " active");
-				});	
-			} else {
-				low_move_paper(paper1, paper2, paper3, p1, p2, p3);
-			}
-		};
-	};
+function keep_root_mr(){
+	base_mr();
+	$('.paper1').css("top", "90px");
+	$('.paper2').css("top", "140px");
+	$('.paper').css("left", "30px");
+	base_mr();
+};
 
-	function low_move_paper1(paper1, paper2, paper3, p1, p2, p3) {
-		var p3top = p3.position().top,
-			p2top = p2.position().top,
-			p1top = p1.position().top,
-			p2left = p2.position().left;
-		p1.transition({
-			top: p3top
-		});
-		p2.transition({
-			top: p1top
-		});
-		p3.transition({ 
-			left: "-200%"
-		}, function() {
-			p1.css('z-index', 0);
-			p2.css('z-index', 1);
-			p3.css('z-index', 2);
-			p3.transition({ 
-				left: p2left,
-				top: p2top
+function set_home_mr() {
+	
+	$('.paper').transition_hide(function() {
+		base_mr();
+		$('.paper3').css('z-index', 1);
+		$('.paper5').css('z-index', 2);
+		$('.paper4').css('z-index', 3);
+		$('.paper3').css("top", "90px");
+		$('.paper5').css("top", "90px");
+		$('.paper4').css("top", "140px");
+		showing_mode = home;
+		set_mode(modes, '.home');
+		sub_mode_visible(home_divs, home_modes);
+		$('.paper').transition({"left": "30px"});
+		base_mr();
+	});
+};
+
+function keep_home_mr(){
+	base_mr();
+	sub_mode_visible(home_divs, home_modes);
+	$('.paper3').css("top", "90px");
+	$('.paper5').css("top", "90px");
+	$('.paper4').css("top", "140px");
+	$('.paper').css("left", "30px");
+	base_mr();
+};
+
+set_room_mr = set_room_hr;
+
+keep_room_mr = keep_room_hr;
+
+function set_root_lr() {
+	
+	$('.paper').transition_hide(function() {
+		base_lr();
+		$('.paper1').css('z-index', 0);
+		$('.paper2').css('z-index', 2);
+		$('.paper1').css("top", "155px");
+		$('.paper2').css("top", "205px");
+		$('.paper1').transition({"rotate": "0"});
+		showing_mode = root;
+		set_mode(modes, '.root');
+		$('.paper').transition({"left": "10px"});
+		base_lr();
+	});
+};
+
+function keep_root_lr(){
+	base_mr();
+	$('.paper1').css("top", "155px");
+	$('.paper2').css("top", "205px");
+	$('.paper').css("left", "10px");
+	base_mr();
+}
+
+function set_home_lr() {
+	
+	$('.paper').transition_hide(function() {
+		base_lr();
+		$('.paper3').css('z-index', 1);
+		$('.paper5').css('z-index', 2);
+		$('.paper4').css('z-index', 3);
+		$('.paper3').css("top", "155px");
+		$('.paper5').css("top", "155px");
+		$('.paper4').css("top", "205px");
+		showing_mode = home;
+		set_mode(modes, '.home');
+		sub_mode_visible(home_divs, home_modes);
+		$('.paper').transition({"left": "10px"});
+		base_lr();
+	});
+};
+
+function keep_home_lr(){
+	base_lr();
+	sub_mode_visible(home_divs, home_modes);
+	$('.paper3').css("top", "155px");
+	$('.paper5').css("top", "155px");
+	$('.paper4').css("top", "205px");
+	$('.paper').css("left", "10px");
+	base_lr();
+};
+
+function set_room_lr() {
+	
+	$('.paper').transition_hide(function() {
+		base_lr();
+		showing_mode = room;
+		set_mode(modes, '.room');
+		sub_mode_visible(room_divs, room_modes);
+		$('.paper').css("top", "155px");
+		$('.paper').transition({"left": "10px"});
+		base_lr();
+	});
+};
+
+function keep_room_lr(){
+	base_lr();
+	sub_mode_visible(room_divs, room_modes);
+	$('.paper').css("top", "155px");
+	$('.paper').css("left", "10px");
+	base_lr();
+};
+
+function high_resolution() {
+	return  ($(window).width()>= 768);
+};
+
+function low_resolution() {
+	return  ($(window).width()<= 480);
+};
+
+function get_res() {
+	if (high_resolution()) {
+		return hr;	
+	} else if (!low_resolution()) {
+		return mr;	
+	} else {
+		return lr;	
+	} 
+}
+
+
+base_dict[hr] = base_hr;
+base_dict[mr] = base_mr;
+base_dict[lr] = base_lr;
+
+
+
+keep_root_dict[hr] = keep_root_hr;
+keep_root_dict[mr] = keep_root_mr;
+keep_root_dict[lr] = keep_root_lr;
+
+keep_home_dict[hr] = keep_home_hr;
+keep_home_dict[mr] = keep_home_mr;
+keep_home_dict[lr] = keep_home_lr;
+
+keep_room_dict[hr] = keep_room_hr;
+keep_room_dict[mr] = keep_room_mr;
+keep_room_dict[lr] = keep_room_lr;
+
+set_root_dict[hr] = set_root_hr;
+set_root_dict[mr] = set_root_mr;
+set_root_dict[lr] = set_root_lr;
+
+set_home_dict[hr] = set_home_hr;
+set_home_dict[mr] = set_home_mr;
+set_home_dict[lr] = set_home_lr;
+
+set_room_dict[hr] = set_room_hr;
+set_room_dict[mr] = set_room_mr;
+set_room_dict[lr] = set_room_lr;
+
+keep_dict[root] = keep_root_dict;
+keep_dict[home] = keep_home_dict;
+keep_dict[room] = keep_room_dict;
+
+set_dict[root] = set_root_dict;
+set_dict[home] = set_home_dict;
+set_dict[room] = set_room_dict;
+
+function move_paper(paper1, paper2, rotate, left1, left2, left3, low_move_paper) {
+	return function() {
+		var p1 = $(this),
+			p2 = $(this).parent().find("." + paper2),
+			p2left = p2.position().left,
+			p1left = $(this).position().left;  
+		if (high_resolution()) {
+			
+			p2.transition({ 
+				rotate: rotate,
+				left: left1
 			});
+			p1.transition({ 
+				rotate: '0deg',
+				left: left2
+			}, function() {
+				p2.css('z-index', 1);
+				p1.css('z-index', 2);
+				p1.transition({ 
+					left: left3
+				});
+				p2.removeClass(paper2 + " active");
+				p2.addClass(paper1);
+				p1.removeClass(paper1);
+				p1.addClass(paper2 + " active");
+			});	
+		} else {
+			low_move_paper(paper1, paper2, p1, p2);
 			p2.removeClass(paper2 + " active");
 			p2.addClass(paper1);
 			p1.removeClass(paper1);
-			p1.addClass(paper3);
-			p3.removeClass(paper3);
-			p3.addClass(paper2 + " active");
-		});
-		
-	}
-
-	function low_move_paper3(paper1, paper2, paper3, p1, p2, p3) {
-		var p3top = p3.position().top,
-			p2top = p2.position().top,
-			p2left = p2.position().left;
-		p2.transition({
-			top: p3top
-		});
-		p3.transition({ 
-			left: "-200%"
-		}, function() {
-			p1.css('z-index', 0);
-			p2.css('z-index', 1);
-			p3.css('z-index', 2);
-			p3.transition({ 
-				left: p2left,
-				top: p2top
-			});
-			p2.removeClass(paper2 + " active");
-			p2.addClass(paper3);
-			p3.removeClass(paper3);
-			p3.addClass(paper2 + " active");
-		});
-		
-	}
-
-	function resize() {
-		var width = $(window).width(),
-			height = $(window).height(),
-			half = width / 2,
-			container = $('.container'), 
-			top;
-		if (high_rsolution()) {
-			$(".tooltips").hide();
-			$(".tooltips").css('left', ($(document).width() - 200) + 'px');
-			$(".tooltips").show();
-			if (big_screen != true) {
-				initialize_hr();
-				big_screen = true;
-				$('.paper').css("width", '32%');
-			}
-			$('.paper').each(function() {
-				var obj = $(this),
-					width = obj.width();
-				obj.height(width * 1.3);
-				
-			});
-			
-
-		} else {
-			if (big_screen != false) {
-				deinitialize_hr();
-				big_screen = false;
-			}
-			$('.paper').css("height", "auto");
-			$('.paper').css("min-height", "0");
-			$('.content').height($(document).height());
-			$('.content').css('height', 'auto');
-			$('.paper3').css('z-index', 1);
-			$('.paper1').css('z-index', 0);
-			$('.paper2').css('z-index', 2);
-			if (low_resolution()) {
-				$('.paper').css("left", "10px");
-				var h = $(document).height() - 220,
-					w = width - 70;
-				$('.paper').css("min-height", h +"px");
-				$('.paper').css("width", w +"px");
-			} else {
-				$('.paper').css("left", "30px");
-				var h = $(document).height() - 240,
-					w = width - 110;
-				$('.paper').css("min-height", h +"px");
-				$('.paper').css("width", w +"px");
-			}
-			
+			p1.addClass(paper2 + " active");
 		}
-
-		var update_input = function() {
-			var input = $(this),
-				parent = input.parent();
-			input.width(parent.width() - 30);
-		};
-		$('.paper_form input[type="text"]').each(update_input);
-		$('.paper_form input[type="password"]').each(update_input);	
 	};
+};
 
+function move_paper2(paper1, paper2, low_move_paper) {
+	var p1 = $(this),
+		p2 = $(this).parent().find("." + paper2);
+	if (!high_resolution()) {
+		low_move_paper(paper1, paper2, p1, p2);
+	}
+}
+
+function low_move_paper1(paper1, paper2, p1, p2) {
+	var p1top = p1.position().top,
+		p2top = p2.position().top,
+		p2left = p2.position().left;
+	p2.transition({
+		top: p1top
+	});
+	p1.transition({ 
+		left: "-200%"
+	}, function() {
+		p2.css('z-index', 1);
+		p1.css('z-index', 2);
+		p1.transition({ 
+			left: p2left,
+			top: p2top
+		});
+		
+	});
+};
+
+function to_home() {
+	sub_mode = chat;
+	set_dict[home][res]();
+};
+
+function to_root() {
+	sub_mode = -1;
+	set_dict[root][res]();
+};
+
+function to_room(data) {
+	sub_mode = data.game.status;
+	set_dict[room][res]();
+};
+
+function resize() {
+	keep_dict[showing_mode][res]();
+	if(this.resizeTO) clearTimeout(this.resizeTO);
+    this.resizeTO = setTimeout(function() {
+        resize_end();
+    }, 500);
+    base();
+};
+
+function resize_end() {
+	$('.paper').clearQueue();
+	var new_res = get_res();
+	if (res == new_res) {
+		keep_dict[showing_mode][res]();
+	} else {
+		$('.paper').hide();
+		res = new_res;
+		set_dict[showing_mode][res]();
+	}
+};
+
+$(document).ready(function() {
+	socket = io.connect(address);
+	$(window).resize(resize);
+	$(".paper1").live('click', move_paper("paper1", "paper2", "-20deg", "15%", "-40%", "31.5%", low_move_paper1));
+	//$(".paper3").live('click', move_paper2("paper3", "paper4", low_move_paper1));
 	
+	$(".chat_outside").keydown(disable);
+	$(".chat_inside").keydown(disable);
 
-	$(document).ready(function() {
-		socket = io.connect(address);
-		$(window).resize(resize);
-		resize();
-		$('.paper').hover(function() {
-			if (high_rsolution()) {
-				var tooltip = $(".tooltips");
-				tooltip.html($(this).find("h1").html());
+	socket.on("error", function(data) {
+		errorMessage(data);	
+	});
+
+	socket.on("success", function(data) {
+		if (data.code == "0") { //login
+		}
+	});
+
+	socket.on("logged_in", function(data) {
+		$(".chat_outside").html("");
+		$(".chat_inside").html("");
+		$(".tooltips").html(data.user.nickname);
+		current_user = data.user.id;
+		if (data.update) {
+			to_home();
+		}
+	});
+
+	socket.on("logged_out", function(data) {
+		current_user = -1;
+		to_root();
+		$(".tooltips").html("<br>");
+	});
+
+	socket.on("room_update", function(data) {
+		$('.current_round').text('Round ' + data.room.current_round + '/' + data.room.rounds);
+		$('.room .paper_title').text(data.room.name);
+		$('.score-list').html('');
+		var leader = false; 
+		for (var user_id in data.room.users) {
+			var user = data.room.users[user_id];
+			$('.score-list').append(
+				'<tr '+ (user.leader? 'class="leader"': "") +'>'+
+					'<td class="player_name">' + user.nickname + '</td>' +
+					'<td class="player_score">' + user.score + '</td>' +
+				'</tr>'
+			);
+			if (user_id == current_user && user.leader) {
+				leader = true;
 			}
-		}, function() {
-			var tooltip = $(".tooltips");
-			tooltip.html("<br>");	
-		});	
-		$(".paper3").live('click', move_paper("paper1", "paper2", "paper3", "20deg", "48%", "100%", "31.5%", low_move_paper3));
-		$(".paper1").live('click', move_paper("paper3", "paper2", "paper1", "-20deg", "15%", "-40%", "31.5%", low_move_paper1));
-		resize();
+		}
+		if (data.room.game.status == 0) {
+			$('.current_letter').text('?');
+			$('.scores .time_text').text('');
+			if (leader) {
+				$('.scores .ready_play').css('visibility', 'visible');
+				$('.scores .ready_play').text('Play');
+			} else {
+				$('.scores .ready_play').css('visibility', 'hidden');
+			}
+		}
+		if (data.room.game.status == 1) {
+			$('.current_letter').text(data.room.game.letter);
+			$('.phrase_letter').text(data.room.game.letter);
+			$('.playing .time_text').html('<span class="time-number"></span>s remaining');
+			$('.playing .ready_play').css('visibility', 'visible');
+			$('.playing .ready_play').text('Stop!');
+			$('.game_form').html("");
+			for (var category_id in data.room.categories) {
+				var category = data.room.categories[category_id];
+				$('.game_form').append(
+					'<div class="field">' +
+						'<label class="game_form_label" for="game_form_' + category + '">' + category + ': </label>' +
+						'<input class="game_form_input" id="game_form_' + category + '" type="text" name="' + category + '"></input>' +
+					'</div>'
+				);
+				
+			}
+			$('.game_form').append('<div class="clear"></div>');
+			clearInterval(timer_interval);
+			timer_interval = setInterval(function (){
+				socket.emit("get_timer");
+			}, 500);
+			stop_enabled = false;
+			$('.playing .ready_play').attr("disabled", "disabled");		
+		}
+		if (data.room.game.status == 2) {
+			$('.current_letter').text(data.room.game.letter);
+			$('.phrase_letter').text(data.room.game.letter);
+			$('.checking_word').text(data.room.game.category);
+			$('.checking .time_text').html('<span class="time-number"></span>s remaining');
+			$('.checking .ready_play').css('visibility', 'visible');
+			$('.checking .ready_play').text('Ready');
+			$('.check_form').html("");
+			for (var word in data.room.game.words) {
+				$('.check_form').append(
+					'<div class="field">' +
+						'<input class="check_form_input" id="check_form_' + word + '" type="checkbox" name="' + word + '"></input>' +
+						'<label class="check_form_label" for="check_form_' + word + '">' + word + '</label>' +
+					'</div>'
+				);
+			}
+			$('.check_form').append('<div class="clear"></div>');
+			clearInterval(timer_interval);
+			timer_interval = setInterval(function (){
+				socket.emit("get_timer");
+			}, 500);
+		}
+		if (data.room.game.status == 3) {
+			$('.current_letter').text('?');
+			$('.scores .time_text').html('<span class="time-number"></span>s remaining');
+			$('.scores .ready_play').text('Ready');
+			$('.scores .ready_play').css('visibility', 'visible');
+			clearInterval(timer_interval);
+			timer_interval = setInterval(function (){
+				socket.emit("get_timer");
+			}, 500);
+		}
+		if (data.room.game.status == 4) {
+			$('.current_letter').text('?');
+			$('.scores .time_text').text('Game finished!');
+			$('.scores .ready_play').css('visibility', 'hidden');
+		}
+		if (data.update) {
+			to_room(data.room);	
+		}
+	});
+
+	socket.on("update_timer", function(data) {
+		$('.time-number').text(data);
+		if (sub_mode == 1) {
+			if (data == 0) {
+				if ($('.game_form').full_filled()) {
+					$('.time_text').text('You can stop now!');
+					$('.playing .ready_play').removeAttr("disabled");
+					stop_enabled = true;
+				} else {
+					$('.time_text').text('Fill all the fields!');
+					$('.playing .ready_play').attr("disabled", "disabled");		
+					stop_enabled = false;
+				}
+			} 
+		}
+		
+	});
+
+	socket.on("exit_room", function(data){
+		$(".chat_inside").html("");
+		to_home();
+	});
+
+	socket.on("update_rooms", function(data){
+		rooms = data.rooms;
+		search_room();
+	});
+
+	socket.on('delete_timer_interval', function(data) {
+		clearInterval(timer_interval);
+	});
+
+	socket.on('stop_request', function(data) {
+		var data = $(".game_form").serializeObject();
+		socket.emit("stop_response", data);
+	});
+
+	socket.on('check_request', function(data) {
+		console.log('check_request');
+		var data = $(".check_form").serializeObject();
+		socket.emit("next_response", data);
+	});
+
+	//Login
+	$("#submit_login_btn").click(submit_login);
+	$(".login_form input").keypress(key_submit(submit_login));
+
+	//Exit
+	$(".exit_button").click(submit_exit);
+
+	//Chat outside
+	$(".text_outside").keypress(key_submit(function(){
+		socket.emit("chat_outside", $('.text_outside').val());
+		$('.text_outside').val("");
+	}));
+
+	//Chat inside
+	$(".text_inside").keypress(key_submit(function(element){
+		socket.emit("chat_inside", $(element).val());
+		$(element).val("");
+	}));
+
+	socket.on("chat_outside", function(data) {
+		$(".chat_outside").append(data+'\n');
+	});
+
+	socket.on("chat_inside", function(data) {
+		$(".chat_inside").append(data+'\n');
 	});
 
 
-})();
+
+	socket.on("debug", function(data) {
+		console.log(data);
+	});
+
+	//New room
+	$(".new_room").click(function(){
+		if (sub_mode != new_room) {
+			sub_mode = new_room;
+			set_dict[home][res]();
+		}
+	});
+
+	//Create room
+	$(".letters_label").click(function(){
+		var obj = $(this), 
+			element = "#"+obj.attr("for");
+		if (!$(element).prop('checked')) {
+			obj.css('color', '#FFF');
+			obj.css('background-color', '#333');
+		} else {
+			obj.css('color', '#000');
+			obj.css('background-color', '#EEE');
+		};
+		$(element).change();
+
+	});
+
+	$(".create_room_cancel").click(function(){
+		if (sub_mode != chat) {
+			sub_mode = chat;
+			set_dict[home][res]();
+		}
+		return false;
+	});
+
+	$(".create_room_submit").click(create_new_room);
+
+	//Exit room
+	$(".exit_room").click(submit_exit_room);
+
+	//Search room
+	$(".search_room").keypress(key_submit(disable));
+	$(".search_room").keyup(search_room);
+
+	//Join room
+	$('.room_link').live('click',submit_join_room);
+
+	//Start game
+	$('.scores .ready_play').click(function() {
+		if (sub_mode == 0) {
+			submit_start_game();
+		} else {
+			submit_ready();
+		}
+	});
+
+	//Stop
+	$('.playing .ready_play').click(submit_stop);
+	$(".game_form").keypress(key_submit(submit_stop));
+
+	//Ready
+	$('.checking .ready_play').click(submit_ready);
+
+	//Change name
+	$('.tooltips').click(function(){
+		if (!$(this).html().match(/<(\w+)((?:\s+\w+(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/)) {
+			var value = $(this).html();
+			$(this).html('<input type="text" class="change_name" value="'+value+'"></input>');
+		}
+	});
+
+	$('.change_name').live('keypress', key_submit(submit_change_name));
+
+	res = get_res();
+	base_dict[res]();
+	set_dict[root][res]();
+	$('.page_container').pajinate();
+	//sub_mode = 0;
+	//set_dict[room][res]();
+
+
+});
+
+
+

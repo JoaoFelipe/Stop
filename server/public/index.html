@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Bootstrap 101 Template</title>
+        <title>Town Country River</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
         <link href="bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" media="screen">
         <link href="css/custom.css" rel="stylesheet" media="screen">
         <script src="http://code.jquery.com/jquery-latest.js"></script>
         <script src="js/jquery.transit.js" type="text/javascript"></script>
-        <script src="http://ec2-50-17-138-98.compute-1.amazonaws.com:8080/socket.io/socket.io.js"></script>
+        <script src="http://127.0.0.1:8080/socket.io/socket.io.js"></script>
         <script src="bootstrap/js/bootstrap.min.js"></script>
+        <script src="js/jquery.paginate.js"></script>
         <script src="js/custom.js"></script>
     </head>
     <body>
@@ -20,53 +21,207 @@
             </div>
             <div class="container">
                 <div class="root">
-                    <div class="paper paper1">
-                        <h1> Signup </h1>
-                        <form class="signup_form paper_form">
-                            <div class="email">
-                                <label class="label_email" for="input_email">Email</label>
-                                <input type="text" id="input_email">
-                            </div>
-                            <div class="password">
-                                <label class="label_password" for="input_password">Password</label>
-                                <input type="password" id="input_password">
-                            </div>
-                            <div class="repeat_password">
-                                <label class="label_repeat_password" for="input_repeat_password">Repeat Password</label>
-                                <input type="password" id="input_repeat_password">
-                            </div>
-                            <input type="submit" class="paper_btn">
-                        </form>
+                    <div class="paper paper1 about root">
+                        <h1 class="paper_title"> About </h1>
+                        <br>
+                        <p> Town, Country, River is a game where the players have to write words beginning with a random letter that is randomly selected in the start of each round.</p>
+                        <p> The words should be in the right category and are validated by the others players. </p>
+                        <p> Unique word: 10 points <br>Repeated word: 5 points  </p>
                     </div>
-                    <div class="paper paper2 active">
-                        <h1> Login </h1>
+                    <div class="paper paper2 active login root">
+                        <h1 class="paper_title"> Let's Play! </h1>
                         <form class="login_form paper_form">
-                            <div class="email">
-                                <label class="label_username" for="input_email">Email</label>
-                                <input type="text" id="input_email">
+                            <div class="nickname">
+                                <label class="label_nickname" for="input_nickname">Nickname</label>
+                                <input type="text" id="input_nickname" name="nickname">
                             </div>
-                            <div class="password">
-                                <label class="label_password" for="input_password">Password</label>
-                                <input type="password" id="input_password">
-                            </div>
-                            <input type="submit" class="paper_btn">
-                        </form>
-                    </div>
-                    <div class="paper paper3">
-                        <h1> Lost Password </h1>
-                        <form class="lost_password_form paper_form">
-                            <div class="email">
-                                <label class="label_username" for="input_email">Email</label>
-                                <input type="text" id="input_email">
-                            </div>
-                            <input type="submit" class="paper_btn">
+                            <button type="button" class="paper_btn" id="submit_login_btn"> Start! </button>
                         </form>
                     </div>
                 </div>
-
+                <div class="home">
+                    <div class="paper paper3 chat home">
+                        <h1 class="paper_title"> Chat </h1>
+                        <textarea class="chat_outside"></textarea>
+                        <input type="text" class="text_outside" placeholder="Press enter to send message"> </input>
+                    </div>
+                    <div class="paper paper4 active rooms home">
+                        <h1 class="paper_title"> Rooms </h1>
+                        <a href="#" class="new_room"> New Room </a>
+                        <input type="text" class="search_room" placeholder="Search room"> </input>
+                        <div class="page_container"> 
+                            <ul class="rooms_header">
+                                <li class="room_row header">
+                                        <span class="room_name">Name</span>
+                                        <span class="room_players">Players</span>
+                                        <span class="room_status">Round</span>
+                                </li>
+                            </ul>
+                            <ul class="rooms content">
+                            </ul>
+                            <div class="page_navigation"></div>
+                            <div class="clear"></div>
+                        </div>
+                    </div>
+                    <div class="paper paper5 create_room home">
+                        <h1 class="paper_title"> Create Room </h1>
+                        <form class="create_room_form">
+                            <label class="create_form_label" for="room_name"> Room Name: </label>
+                            <input class="create_form_input" id="room_name" type="text" name="name"> </input>    
+                            <label class="create_form_label" for="room_rounds"> Rounds: </label>
+                            <input class="create_form_input" id="room_rounds" type="text" name="rounds" value="10"> </input>    
+                            <label class="create_form_label" for="room_players"> Players: </label>
+                            <input class="create_form_input" id="room_players" type="text" name="players" value="0"></input>    
+                            <label class="create_form_label" for="room_stop"> Stop Time: </label>
+                            <input class="create_form_input" id="room_stop" type="text" name="stop" value="5"></input>    
+                            <label class="create_form_label" for="room_check"> Check Time: </label>
+                            <input class="create_form_input" id="room_check" type="text" name="check" value="20"></input>
+                            <div class="letter_list"> 
+                                <input type="checkbox" name="A" id="id_A" class="letters" checked="checked"/><label class="letters_label" for="id_A">A</label>
+                                <input type="checkbox" name="B" id="id_B" class="letters" checked="checked"/><label class="letters_label" for="id_B">B</label>
+                                <input type="checkbox" name="C" id="id_C" class="letters" checked="checked"/><label class="letters_label" for="id_C">C</label>
+                                <input type="checkbox" name="D" id="id_D" class="letters" checked="checked"/><label class="letters_label" for="id_D">D</label>
+                                <input type="checkbox" name="E" id="id_E" class="letters" checked="checked"/><label class="letters_label" for="id_E">E</label>
+                                <input type="checkbox" name="F" id="id_F" class="letters" checked="checked"/><label class="letters_label" for="id_F">F</label>
+                                <input type="checkbox" name="G" id="id_G" class="letters" checked="checked"/><label class="letters_label" for="id_G">G</label>
+                                <input type="checkbox" name="H" id="id_H" class="letters" checked="checked"/><label class="letters_label" for="id_H">H</label>
+                                <input type="checkbox" name="I" id="id_I" class="letters" checked="checked"/><label class="letters_label" for="id_I">I</label>
+                                <input type="checkbox" name="J" id="id_J" class="letters" checked="checked"/><label class="letters_label" for="id_J">J</label>
+                                <input type="checkbox" name="K" id="id_K" class="letters" checked="checked"/><label class="letters_label" for="id_K">K</label>
+                                <input type="checkbox" name="L" id="id_L" class="letters" checked="checked"/><label class="letters_label" for="id_L">L</label>
+                                <input type="checkbox" name="M" id="id_M" class="letters" checked="checked"/><label class="letters_label" for="id_M">M</label>
+                                <input type="checkbox" name="N" id="id_N" class="letters" checked="checked"/><label class="letters_label" for="id_N">N</label>
+                                <input type="checkbox" name="O" id="id_O" class="letters" checked="checked"/><label class="letters_label" for="id_O">O</label>
+                                <input type="checkbox" name="P" id="id_P" class="letters" checked="checked"/><label class="letters_label" for="id_P">P</label>
+                                <input type="checkbox" name="Q" id="id_Q" class="letters" checked="checked"/><label class="letters_label" for="id_Q">Q</label>
+                                <input type="checkbox" name="R" id="id_R" class="letters" checked="checked"/><label class="letters_label" for="id_R">R</label>
+                                <input type="checkbox" name="S" id="id_S" class="letters" checked="checked"/><label class="letters_label" for="id_S">S</label>
+                                <input type="checkbox" name="T" id="id_T" class="letters" checked="checked"/><label class="letters_label" for="id_T">T</label>
+                                <input type="checkbox" name="U" id="id_U" class="letters" checked="checked"/><label class="letters_label" for="id_U">U</label>
+                                <input type="checkbox" name="V" id="id_V" class="letters" checked="checked"/><label class="letters_label" for="id_V">V</label>
+                                <input type="checkbox" name="W" id="id_W" class="letters" checked="checked"/><label class="letters_label" for="id_W">W</label>
+                                <input type="checkbox" name="X" id="id_X" class="letters" checked="checked"/><label class="letters_label" for="id_X">X</label>
+                                <input type="checkbox" name="Y" id="id_Y" class="letters" checked="checked"/><label class="letters_label" for="id_Y">Y</label>
+                                <input type="checkbox" name="Z" id="id_Z" class="letters" checked="checked"/><label class="letters_label" for="id_Z">Z</label>
+                            </div>
+                            <textarea name="categories" class="create_room_categories_text">Town Country River</textarea>
+                            <button class="create_room_submit paper_btn"> Create Room </button>
+                            <button class="create_room_cancel paper_btn"> Cancel </button>
+                            <div class="clear"> </div>
+                        </form>
+                        
+                    </div>
+                </div>
+                <div class="room">
+                    <div class="current_letter room leftmove"></div> 
+                    <div class="paper paper6 scores room active">
+                        <h1 class="paper_title"></h1>
+                        <div class="room_side_title">
+                            <span class="current_round"></span>
+                            <a href="#" class="exit_room"> Quit game </a>
+                        </div>
+                        <div class="clear"> </div>
+                        <div class="score">
+                            <span class="score-title">Score</span>
+                            <table class="score-list"></table>
+                        </div>
+                        <div class="room_control">
+                            <span class="time_text"> 
+                                <span class="time-number"></span>s remaining
+                            </span>
+                            <div class="button_control"><button class="ready_play paper_btn">Ready</button></div>
+                        </div>
+                        <div class="tabbable">
+                            <ul class="nav nav-tabs">
+                                <li class="active"><a href="#tab1" data-toggle="tab">Chat</a></li>
+                                <li><a href="#tab2" data-toggle="tab">Users</a></li>
+                            </ul>
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="tab1">
+                                    <textarea class="chat_inside"></textarea>
+                                    <input type="text" class="text_inside" placeholder="Press enter to send message"> </input> 
+                                </div>
+                                <div class="tab-pane users_list" id="tab2">
+                                    <table class="score-list"></table>
+                                </div>
+                            </div>
+                        </div>  
+                    </div>
+                    <div class="paper paper7 playing room active">
+                        <h1 class="paper_title"></h1>
+                        <div class="room_side_title">
+                            <span class="current_round"></span>
+                            <a href="#" class="exit_room"> Quit game </a>
+                        </div>
+                        <div class="clear"> </div>
+                        <span class="phrase"> Write words starting with <span class="phrase_letter"></span> </span>
+                        <form class="game_form">
+                            <div class="clear"></div>
+                        </form>
+                        <div class="room_control">
+                            <span class="time_text"> 
+                                <span class="time-number"></span>s remaining 
+                            </span>
+                            <div class="button_control"><button class="ready_play paper_btn">Ready</button></div>
+                        </div>
+                        
+                        <div class="tabbable">
+                            <ul class="nav nav-tabs">
+                                <li class="active"><a href="#tab3" data-toggle="tab">Chat</a></li>
+                                <li><a href="#tab4" data-toggle="tab">Users</a></li>
+                            </ul>
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="tab3">
+                                    <textarea class="chat_inside"></textarea>
+                                    <input type="text" class="text_inside" placeholder="Press enter to send message"> </input> 
+                                </div>
+                                <div class="tab-pane users_list" id="tab4">
+                                    <table class="score-list"></table>
+                                </div>
+                            </div>
+                        </div>  
+                    </div>
+                    <div class="paper paper8 checking room active">
+                        <h1 class="paper_title"></h1>
+                        <div class="room_side_title">
+                            <span class="current_round"></span>
+                            <a href="#" class="exit_room"> Quit game </a>
+                        </div>
+                        <div class="clear"> </div>
+                        <span class="phrase"> Checking words for <span class="checking_word"></span> </span>
+                        <form class="check_form">
+                            <div class="clear"> </div>
+                        </form>
+                        <div class="room_control">
+                            <span class="time_text"> 
+                                <span class="time-number"></span>s remaining 
+                            </span>
+                            <div class="button_control"><button class="ready_play paper_btn">Ready</button></div>
+                        </div>
+                        
+                        <div class="tabbable">
+                            <ul class="nav nav-tabs">
+                                <li class="active"><a href="#tab5" data-toggle="tab">Chat</a></li>
+                                <li><a href="#tab6" data-toggle="tab">Users</a></li>
+                            </ul>
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="tab5">
+                                    <textarea class="chat_inside"></textarea>
+                                    <input type="text" class="text_inside" placeholder="Press enter to send message"> </input> 
+                                </div>
+                                <div class="tab-pane users_list" id="tab6">
+                                    <table class="score-list"></table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="tooltips">
-                Menu
+            <div class="tooltips leftmove">
+                <br/>
+            </div>
+            <div class="exit leftmove">
+                <a href="#" class="exit_button"><img alt="exit" src="/img/exit.png"></a>
             </div>
         </div>
 

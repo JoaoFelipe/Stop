@@ -20,6 +20,19 @@ body {
 
 }
 
+.home {
+	display: none;
+}
+
+.root {
+	display: none;
+}
+
+.room {
+	display: none;
+}
+
+
 .logo {
 	position: absolute;
 	top: 10px;
@@ -79,8 +92,12 @@ body {
 		top: 140px;
 	}
 
-	.tooltips {
-		display: none;
+	.paper:not(.active):hover {
+		border: 5px solid #00BBFF;
+	}
+
+	.paper:not(.active):hover h1 {
+		color: #00BBFF;
 	}
 
 }
@@ -104,19 +121,29 @@ body {
 		left: 48%;
 	}
 
-	.tooltips {
-		text-align: center;
-		position: absolute;
-		width: 140px;
-		top: 15px;
-		background: url('../img/eraser.png');
-		text-shadow: 2px 2px #ccc;
-		color: #000;
-		padding: 20px 30px 20px 3px;
-		font-size: 18px;
-	}
+	
 }
 
+
+.tooltips {
+	text-align: center;
+	position: absolute;
+	width: 140px;
+	top: 15px;
+	background: url('../img/eraser.png');
+	text-shadow: 2px 2px #ccc;
+	color: #000;
+	padding: 20px 30px 20px 3px;
+	font-size: 18px;
+}
+
+.exit {
+	text-align: center;
+	position: absolute;
+	width: 45px;
+	top: 20px;
+	height: 45px;
+}
 
 .paper {
 	transition: border-color 1s linear;
@@ -167,6 +194,7 @@ body {
     font-size: 32px;
     line-height: 32px;
     margin: 0 0 8px;
+    display: block;
 }
 
 .paper h2 {
@@ -189,9 +217,18 @@ body {
 .paper p:last-child {margin: 0;}
 .paper ul {margin: 0 0 20px;}
 
-.paper:not(.active):hover {
+
+.paper1:not(.active):hover ,
+.paper2:not(.active):hover {
 	border: 5px solid #00BBFF;
 }
+
+.paper1:not(.active):hover h1,
+.paper2:not(.active):hover h1 {
+	color: #00BBFF;
+}
+
+
 
 .paper_form {
 	margin-top: 4px;
@@ -227,12 +264,281 @@ body {
 	height: 30px;
 }
 
-.paper_form .paper_btn {
+form .paper_btn {
 	float: right;
 	margin-right: 17px;
 }
 
-.paper:not(.active):hover h1 {
-	color: #00BBFF;
+.chat_outside {
+	resize: none;
 }
 
+.letters {
+	display: none;
+}
+
+.letters_label {
+	display: inline;
+}
+
+.letters_label:hover {
+	cursor: pointer;
+}
+
+.letters_label {
+	width: 1em;
+	display: inline-block;
+	background-color: #EEE;
+	text-align: center;
+}
+
+
+.letters:checked + .letters_label { 
+	color: white;
+	background-color: #333;
+}
+
+.letters:not(:checked) + .letters_label { 
+	color: black;
+	background-color: #EEE;
+}
+
+.create_form_label {
+	display: inline-block;
+	width: 90px;
+}
+
+.create_room_form {
+	padding-top: 3px;
+}
+
+.clear {
+	clear: both;
+}
+
+.score-list td {
+	margin: 0;
+	padding: 0;
+}
+
+.score-list {
+	margin-left: 25px;
+}
+
+.player_name {
+	min-width: 160px;
+}
+
+.scores .room_control {
+	margin-top: 15px;
+}
+
+.time_text {
+	display: inline-block;
+	width: 171px;
+}
+
+.player_score {
+	width: 35px;
+	text-align: center;
+}
+
+.tabbable {
+	margin-top: 36px;
+}
+
+.button_control {
+	text-align: center;
+	display: inline-block;
+	width: 55px;
+}
+
+.chat_inside {
+	resize: none;
+	min-height: 100px;
+}
+
+.game_form .field {
+	float: left;
+	display: block;
+	margin-right: 10px;
+}
+
+.game_form_label {
+	display: inline-block;
+	width: 90px;
+	float: left;
+	margin-top: 5px;
+}
+
+.game_form_input {
+	display: inline-block;
+	width: 110px;
+	float: right;
+}
+
+.game_room_form {
+	padding-top: 3px;
+}
+
+.game_form {
+	padding-top: 3px;
+	margin-bottom: 0;
+}
+
+.playing .room_control {
+	margin-top: 12px;
+}
+
+
+.check_form_label {
+	display: inline-block;
+	width: 90px;
+	float: left;
+	margin: 0;
+	margin-left: 5px;
+}
+
+input[type="checkbox"].check_form_input {
+	display: inline-block;
+	float: left;
+	margin-top: 3px;
+}
+
+.check_form .field {
+	float: left;
+	display: block;
+	margin: 0;
+	
+	margin-right: 10px;
+}
+
+.checking .room_control {
+	margin-top: -5px;
+}
+
+.checking_word {
+	color: red;
+}
+
+.current_letter {
+	position: absolute;
+	width: 44px;
+	background-color: white;
+	border: 1px solid black;
+	top: 20px;
+	left: 200px;
+	text-align: center;
+	font-size: 32px;
+	padding: 12px 0;
+
+}
+
+
+
+.paper_title {
+	display: inline-block;
+}
+
+.room_side_title {
+	float: right;
+	width: 110px;
+}
+
+.room .paper_title {
+	float: left;
+}
+
+.current_round {
+	display: block;
+}
+
+.phrase {
+	margin: 20px 0 20px 0;
+	display: block;
+}
+
+.phrase_letter {
+	color: red;
+}
+
+.score {
+	margin: 20px 0 0 0;
+}
+
+.create_room_categories_text {
+	resize: none;
+	min-height: 200px;
+}
+
+.leader {
+	font-weight:bold;
+}
+
+input[type="text"].search_room {
+	margin-top: 23px;
+	margin-bottom: 26px;
+}
+
+.room_row {
+	width: 100%;
+	display: block;
+}
+
+.room_row a {
+	text-decoration: none;
+}
+
+.room_row .room_name {
+	width: 35%;
+	display: inline-block;
+} 
+
+.room_row .room_players {
+	width: 33%;
+	display: inline-block;
+	text-align: center;
+} 
+
+.room_row .room_status {
+	width: 27%;
+	display: inline-block;
+	text-align: center;
+} 
+
+.page_navigation {
+	float: right;
+}
+
+.page_navigation a {
+	margin-right: 5px;
+	text-decoration: none;
+}
+
+.page_navigation a:hover {
+	color:red;
+}
+
+.page_navigation a.active_page {
+	color:orange;
+}
+
+
+.page_navigation span {
+	margin-right: 5px;
+}
+
+.paper ul.rooms_header {
+	margin: 0;
+}
+
+.ready_play:disabled {
+	border-color: red;
+	cursor: default;
+}
+
+input[type="text"].change_name {
+	margin-top: -7px;
+	margin-bottom: 0;
+	width: 150px;
+}
