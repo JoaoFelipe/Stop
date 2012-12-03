@@ -37,6 +37,11 @@ var s = app.listen(process.env.PORT || 8080);
 
 server = io.listen(s).set( 'log level', 1 );
 
+server.configure(function(){
+    server.set("transports", ['xhr-polling']);
+    server.set('polling duration', 10);
+});
+
 server.set('authorization', function(data, accept) {
     if (data.headers.cookie) {
         data.cookie = cookie.parse(data.headers.cookie);
