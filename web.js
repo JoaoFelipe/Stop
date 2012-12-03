@@ -33,7 +33,7 @@ app.configure(function () {
      
 });
 
-var s = app.listen(process.env.PORT || 8080);
+var s = app.listen(process.env.PORT || 5000);
 
 server = io.listen(s).set( 'log level', 1 );
 
@@ -105,7 +105,11 @@ server.sockets.on( 'connection', function( socket ) {
     chat_inside(socket);
 
     socket.on('debug', function(data){
-        socket.emit('debug', {context: socket.context, user:socket.user})
+        socket.emit('debug', {context: socket.context, user:socket.user});
+    });
+
+    socket.on('crash', function(data){
+        asdasd
     });
 
 });
