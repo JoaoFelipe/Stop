@@ -33,7 +33,7 @@ app.configure(function () {
      
 });
 
-var s = app.listen(8080);
+var s = app.listen(process.env.PORT || 8080);
 
 server = io.listen(s).set( 'log level', 1 );
 

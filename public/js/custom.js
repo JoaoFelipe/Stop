@@ -1,4 +1,4 @@
-var address = 'http://127.0.0.1:8080';
+var address = window.location;//'http://127.0.0.1:8080';
 var socket;
 var big_screen = null;
 var root = 0;
