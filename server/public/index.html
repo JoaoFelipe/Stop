@@ -11,12 +11,16 @@
         <script src="http://127.0.0.1:8080/socket.io/socket.io.js"></script>
         <script src="bootstrap/js/bootstrap.min.js"></script>
         <script src="js/jquery.paginate.js"></script>
+        <script src="js/jquery.dom-outline.js"></script>
         <script src="js/custom.js"></script>
+
     </head>
     <body>
-
+        <div class="overlay"> </div>
+        <div class="error post-it"> </div>
+        <div class="hint_post post-it"> </div>
         <div class="content">
-            <div class="logo">
+            <div class="logo hint">
 
             </div>
             <div class="container">
@@ -33,7 +37,7 @@
                         <form class="login_form paper_form">
                             <div class="nickname">
                                 <label class="label_nickname" for="input_nickname">Nickname</label>
-                                <input type="text" id="input_nickname" name="nickname">
+                                <input type="text" class="hint" id="input_nickname" name="nickname">
                             </div>
                             <button type="button" class="paper_btn" id="submit_login_btn"> Start! </button>
                         </form>
@@ -47,7 +51,7 @@
                     </div>
                     <div class="paper paper4 active rooms home">
                         <h1 class="paper_title"> Rooms </h1>
-                        <a href="#" class="new_room"> New Room </a>
+                        <a href="#" class="new_room hint" id="new_room"> New Room </a>
                         <input type="text" class="search_room" placeholder="Search room"> </input>
                         <div class="page_container"> 
                             <ul class="rooms_header">
@@ -73,7 +77,7 @@
                             <label class="create_form_label" for="room_players"> Players: </label>
                             <input class="create_form_input" id="room_players" type="text" name="players" value="0"></input>    
                             <label class="create_form_label" for="room_stop"> Stop Time: </label>
-                            <input class="create_form_input" id="room_stop" type="text" name="stop" value="5"></input>    
+                            <input class="create_form_input" id="room_stop" type="text" name="stop" value="60"></input>    
                             <label class="create_form_label" for="room_check"> Check Time: </label>
                             <input class="create_form_input" id="room_check" type="text" name="check" value="20"></input>
                             <div class="letter_list"> 

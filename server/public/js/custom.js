@@ -20,6 +20,9 @@ var keep_room_dict = {};
 var current_user = -1;
 var timer_interval = setInterval(function (){ return false; }, 500);
 var stop_enabled = false;
+var hinting = false;
+
+
 
 var current_mode = '.root';
 var modes = ['.root', '.home', '.room'];
@@ -42,6 +45,12 @@ var room_modes = {
 	3: ['.paper6'],
 	4: ['.paper6'],
 }
+
+var hint_messages = {
+	'input_nickname': 'Write your nickname here and click in start.<br> You can change the nickname during the game by clicking on the eraser'
+	,'new_room': '<p>Click here to create a new room.</p><p>It will open a page where you can write the room name and set the room information'
+};
+
 
 function debug() {
 	socket.emit("debug");
@@ -93,8 +102,44 @@ $.fn.full_filled = function() {
 };
 
 function errorMessage(data) {
-	alert(data.message);
+	//alert(data.message);
+	$('.overlay').each(function(){
+		var obj = $(this);
+		obj.show();
+		$('.error').show();
+
+		$('.error').html('<h1>Error</h1><span class="message">'+data.message+'</span>');
+		obj.click(function(){
+			obj.hide();
+			$('.post-it').hide();
+		})
+	});
 };
+
+function hintMessage(element_id) {
+	//alert(data.message);
+	hinting = false;
+	var message = hint_messages[element_id];
+	if (message != undefined) {
+	$('.overlay').each(function(){
+		var obj = $(this);
+		obj.show();
+		$('.hint_post').show();
+
+		$('.hint_post').html('<h1>Hint</h1><span class="message">'+message+'</span>');
+		obj.click(function(){
+			obj.hide();
+			$('.post-it').hide();
+		})
+	});
+	
+	}
+};
+
+var domOutline = window.DomOutline({ onClick: function(element) {
+	hintMessage(element.id);
+}});
+
 
 function disable() {
 	return false;
@@ -217,6 +262,9 @@ function topmove() {
 
 
 function base() {	
+
+	$('.post-it').css('left', ($(document).width() - 200)/2 + 'px');
+
 	var pos_top = $(".chat_inside").position().top;
 
 	$(['.chat_outside', '.text_outside', '.chat_inside', '.text_inside', '.paper_form input[type="text"]', 
@@ -328,17 +376,17 @@ function set_root_hr(){
 		base_hr();
 		showing_mode = root;
 		set_mode(modes, '.root');
-		$('.paper2').transition({"left": "31.5%"});
-		$('.paper1').transition({"left": "15%", "rotate": "-20deg"});
+		$('.root .paper.active').transition({"left": "31.5%"});
+		$('.root .paper:not(.active)').transition({"left": "15%", "rotate": "-20deg"});
 		base_hr();
 	});
 };
 
 function keep_root_hr(){
 	base_hr();
-	$('.paper2').css('left', '31.5%');
-	$('.paper1').css('left', '15%');
-	$('.paper1').css('rotate',  "-20deg");	
+	$('.root .paper.active').css('left', '31.5%');
+	$('.root .paper:not(.active)').css('left', '15%');
+	$('.root .paper:not(.active)').css('rotate',  "-20deg");	
 	base_hr();
 };
 
@@ -390,13 +438,13 @@ function set_root_mr() {
 	
 	$('.paper').transition_hide(function() {
 		base_mr();
-		$('.paper1').css('z-index', 0);
-		$('.paper2').css('z-index', 2);
+		$('.root .paper:not(.active)').css('z-index', 0);
+		$('.root .paper.active').css('z-index', 2);
 		showing_mode = root;
 		set_mode(modes, '.root');
-		$('.paper1').css("top", "90px");
-		$('.paper2').css("top", "140px");
-		$('.paper1').transition({"rotate": "0"});
+		$('.root .paper:not(.active)').css("top", "90px");
+		$('.root .paper.active').css("top", "140px");
+		$('.root .paper:not(.active)').css("rotate", "0");
 		$('.paper').transition({"left": "30px"});
 		base_mr();
 	});
@@ -404,8 +452,8 @@ function set_root_mr() {
 
 function keep_root_mr(){
 	base_mr();
-	$('.paper1').css("top", "90px");
-	$('.paper2').css("top", "140px");
+	$('.root .paper:not(.active)').css("top", "90px");
+	$('.root .paper.active').css("top", "140px");
 	$('.paper').css("left", "30px");
 	base_mr();
 };
@@ -414,12 +462,10 @@ function set_home_mr() {
 	
 	$('.paper').transition_hide(function() {
 		base_mr();
-		$('.paper3').css('z-index', 1);
-		$('.paper5').css('z-index', 2);
-		$('.paper4').css('z-index', 3);
-		$('.paper3').css("top", "90px");
-		$('.paper5').css("top", "90px");
-		$('.paper4').css("top", "140px");
+		$('.home .paper:not(.active)').css('z-index', 2);
+		$('.home .paper.active').css('z-index', 3);
+		$('.home .paper:not(.active)').css("top", "90px");
+		$('.home .paper.active').css("top", "140px");
 		showing_mode = home;
 		set_mode(modes, '.home');
 		sub_mode_visible(home_divs, home_modes);
@@ -431,9 +477,9 @@ function set_home_mr() {
 function keep_home_mr(){
 	base_mr();
 	sub_mode_visible(home_divs, home_modes);
-	$('.paper3').css("top", "90px");
-	$('.paper5').css("top", "90px");
-	$('.paper4').css("top", "140px");
+	$('.home .paper:not(.active)').css("top", "90px");
+	$('.home .paper.active').css("top", "140px");
+	$('.home .paper.active').css('z-index', 3);
 	$('.paper').css("left", "30px");
 	base_mr();
 };
@@ -446,11 +492,11 @@ function set_root_lr() {
 	
 	$('.paper').transition_hide(function() {
 		base_lr();
-		$('.paper1').css('z-index', 0);
-		$('.paper2').css('z-index', 2);
-		$('.paper1').css("top", "155px");
-		$('.paper2').css("top", "205px");
-		$('.paper1').transition({"rotate": "0"});
+		$('.root .paper:not(.active)').css('z-index', 0);
+		$('.root .paper.active').css('z-index', 2);
+		$('.root .paper:not(.active)').css("top", "155px");
+		$('.root .paper.active').css("top", "205px");
+		$('.root .paper:not(.active)').css("rotate", "0");
 		showing_mode = root;
 		set_mode(modes, '.root');
 		$('.paper').transition({"left": "10px"});
@@ -460,8 +506,8 @@ function set_root_lr() {
 
 function keep_root_lr(){
 	base_mr();
-	$('.paper1').css("top", "155px");
-	$('.paper2').css("top", "205px");
+	$('.root .paper:not(.active)').css("top", "155px");
+	$('.root .paper.active').css("top", "205px");
 	$('.paper').css("left", "10px");
 	base_mr();
 }
@@ -470,12 +516,10 @@ function set_home_lr() {
 	
 	$('.paper').transition_hide(function() {
 		base_lr();
-		$('.paper3').css('z-index', 1);
-		$('.paper5').css('z-index', 2);
-		$('.paper4').css('z-index', 3);
-		$('.paper3').css("top", "155px");
-		$('.paper5').css("top", "155px");
-		$('.paper4').css("top", "205px");
+		$('.home .paper:not(.active)').css('z-index', 2);
+		$('.home .paper.active').css('z-index', 3);
+		$('.home .paper:not(.active)').css("top", "155px");
+		$('.home .paper.active').css("top", "205px");
 		showing_mode = home;
 		set_mode(modes, '.home');
 		sub_mode_visible(home_divs, home_modes);
@@ -487,9 +531,8 @@ function set_home_lr() {
 function keep_home_lr(){
 	base_lr();
 	sub_mode_visible(home_divs, home_modes);
-	$('.paper3').css("top", "155px");
-	$('.paper5').css("top", "155px");
-	$('.paper4').css("top", "205px");
+	$('.home .paper:not(.active)').css("top", "155px");
+	$('.home .paper.active').css("top", "205px");
 	$('.paper').css("left", "10px");
 	base_lr();
 };
@@ -572,69 +615,63 @@ set_dict[root] = set_root_dict;
 set_dict[home] = set_home_dict;
 set_dict[room] = set_room_dict;
 
-function move_paper(paper1, paper2, rotate, left1, left2, left3, low_move_paper) {
+function move_paper_low(base) {
 	return function() {
-		var p1 = $(this),
-			p2 = $(this).parent().find("." + paper2),
-			p2left = p2.position().left,
-			p1left = $(this).position().left;  
-		if (high_resolution()) {
-			
-			p2.transition({ 
-				rotate: rotate,
-				left: left1
+		var p_active = $(base + ' .paper.active:visible'),
+			p_inactive = $(base + ' .paper:not(.active):visible'),
+			pa_left = p_active.position().left,
+			pa_top = p_active.position().top,
+			pi_top = p_inactive.position().top;	
+		p_active.transition({
+			top: pi_top
+		});
+		p_inactive.transition({ 
+			left: "-200%"
+		}, function() {
+			p_active.css('z-index', 1);
+			p_inactive.css('z-index', 2);
+			p_inactive.transition({ 
+				left: pa_left,
+				top: pa_top
 			});
-			p1.transition({ 
-				rotate: '0deg',
-				left: left2
-			}, function() {
-				p2.css('z-index', 1);
-				p1.css('z-index', 2);
-				p1.transition({ 
-					left: left3
-				});
-				p2.removeClass(paper2 + " active");
-				p2.addClass(paper1);
-				p1.removeClass(paper1);
-				p1.addClass(paper2 + " active");
-			});	
-		} else {
-			low_move_paper(paper1, paper2, p1, p2);
-			p2.removeClass(paper2 + " active");
-			p2.addClass(paper1);
-			p1.removeClass(paper1);
-			p1.addClass(paper2 + " active");
-		}
-	};
-};
-
-function move_paper2(paper1, paper2, low_move_paper) {
-	var p1 = $(this),
-		p2 = $(this).parent().find("." + paper2);
-	if (!high_resolution()) {
-		low_move_paper(paper1, paper2, p1, p2);
+			p_active.removeClass('active');
+			p_inactive.addClass("active");
+		});
 	}
+		
 }
 
-function low_move_paper1(paper1, paper2, p1, p2) {
-	var p1top = p1.position().top,
-		p2top = p2.position().top,
-		p2left = p2.position().left;
-	p2.transition({
-		top: p1top
-	});
-	p1.transition({ 
-		left: "-200%"
-	}, function() {
-		p2.css('z-index', 1);
-		p1.css('z-index', 2);
-		p1.transition({ 
-			left: p2left,
-			top: p2top
-		});
-		
-	});
+function move_paper_root(base) {
+	return function() {
+		var p_active = $(base + ' .paper.active'),
+			p_inactive = $(base + ' .paper:not(.active)'),
+			pa_left = p_active.position().left,
+			pa_top = p_active.position().top,
+			pi_top = p_inactive.position().top;	
+		if (high_resolution()) {
+			p_active.transition({
+				rotate: "-20deg",
+				left: "15%"
+			});
+			p_inactive.transition({
+				rotate: '0deg',
+				left: "-40%"
+			}, function() {
+				p_active.css('z-index', 1);
+				p_inactive.css('z-index', 2);
+				p_inactive.transition({ 
+					left: '31.5%'
+				});
+				p_active.removeClass('active');
+				p_inactive.addClass("active");
+			})
+		} else {
+			move_paper_low(base)();
+		}
+	};
+	
 };
+
 
 function to_home() {
 	sub_mode = chat;
@@ -675,7 +712,13 @@ function resize_end() {
 $(document).ready(function() {
 	socket = io.connect(address);
 	$(window).resize(resize);
-	$(".paper1").live('click', move_paper("paper1", "paper2", "-20deg", "15%", "-40%", "31.5%", low_move_paper1));
+	$(".root .paper:not(.active)").live('click', move_paper_root('.root'));
+	$(".home .paper:not(.active)").live('click', function(){
+		if (!high_resolution()) {
+			move_paper_low('.home')();
+		}
+	});
+		//move_paper("paper1", "paper2", "-20deg", "15%", "-40%", "31.5%", low_move_paper1));
 	//$(".paper3").live('click', move_paper2("paper3", "paper4", low_move_paper1));
 	
 	$(".chat_outside").keydown(disable);
@@ -702,7 +745,9 @@ $(document).ready(function() {
 
 	socket.on("logged_out", function(data) {
 		current_user = -1;
-		to_root();
+		if (showing_mode != root) {
+			to_root();	
+		}
 		$(".tooltips").html("<br>");
 	});
 
@@ -878,9 +923,15 @@ $(document).ready(function() {
 
 	//New room
 	$(".new_room").click(function(){
-		if (sub_mode != new_room) {
-			sub_mode = new_room;
-			set_dict[home][res]();
+		if(!hinting) {
+			$('.paper4').removeClass('active');
+			$('.paper3').removeClass('active');
+			$('.paper5').addClass('active');
+			if (sub_mode != new_room) {
+				
+				sub_mode = new_room;
+				set_dict[home][res]();
+			}	
 		}
 	});
 
@@ -900,6 +951,9 @@ $(document).ready(function() {
 	});
 
 	$(".create_room_cancel").click(function(){
+		$('.paper4').toggleClass('active', false);
+		$('.paper3').toggleClass('active', true);
+		$('.paper5').toggleClass('active', false);
 		if (sub_mode != chat) {
 			sub_mode = chat;
 			set_dict[home][res]();
@@ -944,6 +998,16 @@ $(document).ready(function() {
 	});
 
 	$('.change_name').live('keypress', key_submit(submit_change_name));
+
+	$('.logo').click(function(){
+		if (!hinting) {
+			domOutline.start();
+		} else {
+			domOutline.start();
+		}
+		hinting = !hinting;
+		
+	});
 
 	res = get_res();
 	base_dict[res]();

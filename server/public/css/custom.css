@@ -36,10 +36,11 @@ body {
 .logo {
 	position: absolute;
 	top: 10px;
-	width: 200px;
+	width: 161px;
 	height: 70px;
 	background: url('../img/logo.gif');
 	display: block;
+	cursor: pointer;
 }
 
 .container {
@@ -541,4 +542,52 @@ input[type="text"].change_name {
 	margin-top: -7px;
 	margin-bottom: 0;
 	width: 150px;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    filter:alpha(opacity=50);
+    -moz-opacity:0.5;
+    -khtml-opacity: 0.5;
+    opacity: 0.5;
+    z-index: 50;
+    display: none;
+}
+
+.post-it {
+	z-index: 51;
+	background:#fefabc; 
+	padding:15px; 
+	font-family: 'Gloria Hallelujah', cursive; 
+	font-size:15px; 
+	color: #000; 
+	width:200px; 
+
+	-moz-transform: rotate(-2deg);
+	-webkit-transform: rotate(-2deg);
+	-o-transform: rotate(-2deg);
+	-ms-transform: rotate(-2deg);
+	transform: rotate(-2deg);
+
+	box-shadow: 0px 4px 6px #333;
+	-moz-box-shadow: 0px 4px 6px #333;
+	-webkit-box-shadow: 0px 4px 6px #333;
+	display: none;
+	position: absolute;
+	left: 40%;
+	top: 30%;
+	min-height: 150px;
+}	
+
+.error {
+	background:#feaabc; 
+}
+
+.hint_post {
+	background:#fefabc; 
 }
