@@ -65,6 +65,7 @@ server.sockets.on( 'connection', function( socket ) {
         socket.user = new User();
         socket.context.users[socket.user.id] = socket.user;
         socket.context.sessions[hs.sessionID] = socket.user;
+        socket.emit("new_session");
     } else {
         socket.user = socket.context.sessions[hs.sessionID];
     }

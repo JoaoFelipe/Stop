@@ -47,7 +47,7 @@ var DomOutline = function (options) {
         if (self.initialized !== true) {
             var css = '' +
                 '.' + self.opts.namespace + ' {' +
-                '    background: #09c;' +
+                '    background: #ffd700;' +
                 '    position: absolute;' +
                 '    z-index: 1000000;' +
                 '}';
@@ -82,8 +82,9 @@ var DomOutline = function (options) {
         if (e.target.className.indexOf(self.opts.namespace) !== -1) {
             return;
         }
-        if ($(e.target).hasClass('hint')) { 
-            pub.element = e.target;
+        var closest = $(e.target).closest('.hint');
+        if (closest[0] != undefined) { 
+            pub.element = closest[0];
 
             var b = self.opts.borderWidth;
             var scroll_top = getScrollTop();
@@ -94,7 +95,9 @@ var DomOutline = function (options) {
             self.elements.bottom.css({ top: top + pos.height, left: pos.left - b, width: pos.width + b, height: b });
             self.elements.left.css({ top: top - b, left: Math.max(0, pos.left - b), width: b, height: pos.height + b });
             self.elements.right.css({ top: top - b, left: pos.left + pos.width, width: b, height: pos.height + (b * 2) });     
-        } 
+        } else {
+
+        }
     }
 
     function stopOnEscape(e) {

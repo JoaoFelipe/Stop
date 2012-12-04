@@ -18,7 +18,6 @@ var stop_s = function(socket) {
 		}
 		var room = socket.context.rooms[user.room];
 		
-		console.log('stop');
 		if (!room.add_categories(data, user.id)) {
 			socket.emit('error', { message: "One or more fields weren't filled", code: action_code });
 			return;

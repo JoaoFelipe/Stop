@@ -43,6 +43,10 @@ body {
 	cursor: pointer;
 }
 
+.logo.logo2 {
+	background: url('../img/logo2.gif');
+}
+
 .container {
 	height: 100%;
 } 
@@ -533,7 +537,7 @@ input[type="text"].search_room {
 	margin: 0;
 }
 
-.ready_play:disabled {
+.ready_play.disabled {
 	border-color: red;
 	cursor: default;
 }
@@ -542,6 +546,7 @@ input[type="text"].change_name {
 	margin-top: -7px;
 	margin-bottom: 0;
 	width: 150px;
+	z-index: 55;
 }
 
 .overlay {
@@ -590,4 +595,12 @@ input[type="text"].change_name {
 
 .hint_post {
 	background:#fefabc; 
+}
+
+.close-button {
+	position: absolute;
+	font-size: 30px;
+	top: 30%;
+	display: none;
+	z-index: 52;
 }

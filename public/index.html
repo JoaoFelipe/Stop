@@ -17,10 +17,11 @@
     </head>
     <body>
         <div class="overlay"> </div>
+        <a href="#" class="close-button"><img src="/img/close.png"></a>
         <div class="error post-it"> </div>
         <div class="hint_post post-it"> </div>
         <div class="content">
-            <div class="logo hint">
+            <div class="logo">
 
             </div>
             <div class="container">
@@ -39,7 +40,7 @@
                                 <label class="label_nickname" for="input_nickname">Nickname</label>
                                 <input type="text" class="hint" id="input_nickname" name="nickname">
                             </div>
-                            <button type="button" class="paper_btn" id="submit_login_btn"> Start! </button>
+                            <button type="button" class="hint paper_btn" id="submit_login_btn"> Start! </button>
                         </form>
                     </div>
                 </div>
@@ -47,23 +48,23 @@
                     <div class="paper paper3 chat home">
                         <h1 class="paper_title"> Chat </h1>
                         <textarea class="chat_outside"></textarea>
-                        <input type="text" class="text_outside" placeholder="Press enter to send message"> 
+                        <input type="text" class="text_outside hint" placeholder="Press enter to send message" id="text_outside"> 
                     </div>
                     <div class="paper paper4 active rooms home">
                         <h1 class="paper_title"> Rooms </h1>
                         <a href="#" class="new_room hint" id="new_room"> New Room </a>
-                        <input type="text" class="search_room" placeholder="Search room"> 
+                        <input type="text" class="search_room hint" id="search_room" placeholder="Search room"> 
                         <div class="page_container"> 
                             <ul class="rooms_header">
                                 <li class="room_row header">
-                                        <span class="room_name">Name</span>
-                                        <span class="room_players">Players</span>
-                                        <span class="room_status">Round</span>
+                                    <span class="room_name">Name</span>
+                                    <span class="room_players">Players</span>
+                                    <span class="room_status">Round</span>
                                 </li>
                             </ul>
-                            <ul class="rooms content">
+                            <ul class="rooms content hint" id="rooms">
                             </ul>
-                            <div class="page_navigation"></div>
+                            <div class="page_navigation hint" id="page_navigation"></div>
                             <div class="clear"></div>
                         </div>
                     </div>
@@ -71,16 +72,16 @@
                         <h1 class="paper_title"> Create Room </h1>
                         <form class="create_room_form">
                             <label class="create_form_label" for="room_name"> Room Name: </label>
-                            <input class="create_form_input" id="room_name" type="text" name="name">     
+                            <input class="create_form_input hint" id="room_name" type="text" name="name">     
                             <label class="create_form_label" for="room_rounds"> Rounds: </label>
-                            <input class="create_form_input" id="room_rounds" type="text" name="rounds" value="10">     
+                            <input class="create_form_input hint" id="room_rounds" type="text" name="rounds" value="10">     
                             <label class="create_form_label" for="room_players"> Players: </label>
-                            <input class="create_form_input" id="room_players" type="text" name="players" value="0">    
+                            <input class="create_form_input hint" id="room_players" type="text" name="players" value="0">    
                             <label class="create_form_label" for="room_stop"> Stop Time: </label>
-                            <input class="create_form_input" id="room_stop" type="text" name="stop" value="60">    
+                            <input class="create_form_input hint" id="room_stop" type="text" name="stop" value="60">    
                             <label class="create_form_label" for="room_check"> Check Time: </label>
-                            <input class="create_form_input" id="room_check" type="text" name="check" value="20">
-                            <div class="letter_list"> 
+                            <input class="create_form_input hint" id="room_check" type="text" name="check" value="20">
+                            <div class="letter_list hint" id="letter_list"> 
                                 <input type="checkbox" name="A" id="id_A" class="letters" checked="checked"/><label class="letters_label" for="id_A">A</label>
                                 <input type="checkbox" name="B" id="id_B" class="letters" checked="checked"/><label class="letters_label" for="id_B">B</label>
                                 <input type="checkbox" name="C" id="id_C" class="letters" checked="checked"/><label class="letters_label" for="id_C">C</label>
@@ -107,10 +108,11 @@
                                 <input type="checkbox" name="X" id="id_X" class="letters" checked="checked"/><label class="letters_label" for="id_X">X</label>
                                 <input type="checkbox" name="Y" id="id_Y" class="letters" checked="checked"/><label class="letters_label" for="id_Y">Y</label>
                                 <input type="checkbox" name="Z" id="id_Z" class="letters" checked="checked"/><label class="letters_label" for="id_Z">Z</label>
+                                <div class="clear"></div>
                             </div>
-                            <textarea name="categories" class="create_room_categories_text">Town Country River</textarea>
-                            <button class="create_room_submit paper_btn"> Create Room </button>
-                            <button class="create_room_cancel paper_btn"> Cancel </button>
+                            <textarea name="categories" class="create_room_categories_text hint" id="create_room_categories_text">Town Country River</textarea>
+                            <button class="create_room_submit hint paper_btn" id="create_room_submit"> Create Room </button>
+                            <button class="create_room_cancel hint paper_btn" id="create_room_cancel"> Cancel </button>
                             <div class="clear"> </div>
                         </form>
                         
@@ -119,10 +121,10 @@
                 <div class="room">
                     <div class="current_letter room leftmove"></div> 
                     <div class="paper paper6 scores room active">
-                        <h1 class="paper_title"></h1>
+                        <h1 class="paper_title hint" id="paper_title_1"></h1>
                         <div class="room_side_title">
                             <span class="current_round"></span>
-                            <a href="#" class="exit_room"> Quit game </a>
+                            <a href="#" class="exit_room hint" id="exit_room_1"> Quit game <i class="icon-off"></i></a>
                         </div>
                         <div class="clear"> </div>
                         <div class="score">
@@ -133,7 +135,7 @@
                             <span class="time_text"> 
                                 <span class="time-number"></span>s remaining
                             </span>
-                            <div class="button_control"><button class="ready_play paper_btn">Ready</button></div>
+                            <div class="button_control"><button class="ready_play paper_btn hint" id="ready_play_1">Ready</button></div>
                         </div>
                         <div class="tabbable">
                             <ul class="nav nav-tabs">
@@ -152,10 +154,10 @@
                         </div>  
                     </div>
                     <div class="paper paper7 playing room active">
-                        <h1 class="paper_title"></h1>
+                        <h1 class="paper_title hint" id="paper_title_2"></h1>
                         <div class="room_side_title">
                             <span class="current_round"></span>
-                            <a href="#" class="exit_room"> Quit game </a>
+                            <a href="#" class="exit_room hint" id="exit_room_2"> Quit game <i class="icon-off"></i></a>
                         </div>
                         <div class="clear"> </div>
                         <span class="phrase"> Write words starting with <span class="phrase_letter"></span> </span>
@@ -166,7 +168,7 @@
                             <span class="time_text"> 
                                 <span class="time-number"></span>s remaining 
                             </span>
-                            <div class="button_control"><button class="ready_play paper_btn">Ready</button></div>
+                            <div class="button_control"><button class="ready_play paper_btn hint" id="ready_play_2">Stop!</button></div>
                         </div>
                         
                         <div class="tabbable">
@@ -186,10 +188,10 @@
                         </div>  
                     </div>
                     <div class="paper paper8 checking room active">
-                        <h1 class="paper_title"></h1>
+                        <h1 class="paper_title hint" id="paper_title_1"></h1>
                         <div class="room_side_title">
                             <span class="current_round"></span>
-                            <a href="#" class="exit_room"> Quit game </a>
+                            <a href="#" class="exit_room hint" id="exit_room_3"> Quit game <i class="icon-off"></i></a>
                         </div>
                         <div class="clear"> </div>
                         <span class="phrase"> Checking words for <span class="checking_word"></span> </span>
@@ -200,7 +202,7 @@
                             <span class="time_text"> 
                                 <span class="time-number"></span>s remaining 
                             </span>
-                            <div class="button_control"><button class="ready_play paper_btn">Ready</button></div>
+                            <div class="button_control"><button class="ready_play paper_btn hint" id="ready_play_3">Ready</button></div>
                         </div>
                         
                         <div class="tabbable">
@@ -221,7 +223,7 @@
                     </div>
                 </div>
             </div>
-            <div class="tooltips leftmove">
+            <div class="tooltips leftmove hint" id="eraser">
                 <br/>
             </div>
             <div class="exit leftmove">

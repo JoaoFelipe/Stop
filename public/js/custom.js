@@ -21,7 +21,8 @@ var current_user = -1;
 var timer_interval = setInterval(function (){ return false; }, 500);
 var stop_enabled = false;
 var hinting = false;
-
+var old_name = "";
+var old_focus = null;
 
 
 var current_mode = '.root';
@@ -47,8 +48,32 @@ var room_modes = {
 }
 
 var hint_messages = {
-	'input_nickname': 'Write your nickname here and click in start.<br> You can change the nickname during the game by clicking on the eraser'
-	,'new_room': '<p>Click here to create a new room.</p><p>It will open a page where you can write the room name and set the room information'
+	'input_nickname': '<p>Write your nickname here and click in start.</p><p> You can change the nickname during the game by clicking on the eraser.</p>'
+	,'new_room': '<p>Click here to create a new room.</p><p>It will open a page where you can set the room information.</p>'
+	,'room_name': '<p>Write the desired room name here. </p> <p>Maximum of 20 alphanumeric charactes. </p>'
+	,'room_rounds': '<p>Write the number of rounds here. </p> <p>The maximum number of rounds is the number of selected letters.</p>'
+	,'room_players': '<p>Write the maximum number of players here. </p> <p>If it is 0, there will be no maximum number of players.</p>'
+	,'room_stop': '<p>Write the stop time in seconds here. </p> <p>If it is 0, the players can ask stop as soon as they fill all the fields.</p>'
+	,'room_check': '<p>Write the checking time in seconds here. </p> <p> If the timer reaches 0, the checking process will end.</p>'
+	,'letter_list': '<p>Select the letters that can be randomly selected for the game.</p>'
+	,'create_room_categories_text': '<p>Write the categories for the room separated by spaces.</p>'
+	,'create_room_submit': '<p>Use this button to create the room.</p>'
+	,'create_room_cancel': '<p>Use this button to cancel the room creation.</p>'
+	,'submit_login_btn': '<p>Use this button to start the game.</p>'
+	,'text_outside': '<p>Write your message here and press enter </p>'
+	,'search_room': '<p>Search room by name</p>'
+	,'rooms': '<p>Click in a room to join.</p>'
+	,'page_navigation': '<p>Navigate in the room list.</p>'
+	,'exit_room_1': '<p>Exit room.</p> <p>If you are the only player, the room will be destroyed.</p><p> If you are the leader, another player will be the leader. </p>'
+	,'exit_room_2': '<p>Exit room.</p> <p>If you are the only player, the room will be destroyed.</p><p> If you are the leader, another player will be the leader. </p>'
+	,'exit_room_3': '<p>Exit room.</p> <p>If you are the only player, the room will be destroyed.</p><p> If you are the leader, another player will be the leader. </p>'
+	,'paper_title_1': '<p> This is the room name.</p>' 
+	,'paper_title_2': '<p> This is the room name.</p>' 
+	,'paper_title_3': '<p> This is the room name.</p>'
+	,'ready_play_2': '<p> You can stop after filling all fields and after the timer reaches 0. </p>' 	
+	,'ready_play_3': '<p> The checking will finish when all players are ready or when the timer reaches 0. </p>' 	
+
+
 };
 
 
@@ -101,18 +126,22 @@ $.fn.full_filled = function() {
 	return result;
 };
 
+$.fn.post_it = function(text) {
+	this.show();
+	$('.close-button').show();
+	this.html(text);
+	this.css('left', ($(document).width() - 200)/2 + 'px');
+	$('.close-button').css('left', this.position().left + this.width() + 'px');
+	old_focus = document.activeElement;
+	$('.close-button').focus();
+}
+
 function errorMessage(data) {
 	//alert(data.message);
 	$('.overlay').each(function(){
 		var obj = $(this);
 		obj.show();
-		$('.error').show();
-
-		$('.error').html('<h1>Error</h1><span class="message">'+data.message+'</span>');
-		obj.click(function(){
-			obj.hide();
-			$('.post-it').hide();
-		})
+		$('.error').post_it('<h1>Error</h1><span class="message">'+data.message+'</span>');
 	});
 };
 
@@ -120,24 +149,34 @@ function hintMessage(element_id) {
 	//alert(data.message);
 	hinting = false;
 	var message = hint_messages[element_id];
+	$('.logo').removeClass('logo2');
 	if (message != undefined) {
-	$('.overlay').each(function(){
-		var obj = $(this);
-		obj.show();
-		$('.hint_post').show();
-
-		$('.hint_post').html('<h1>Hint</h1><span class="message">'+message+'</span>');
-		obj.click(function(){
-			obj.hide();
-			$('.post-it').hide();
-		})
-	});
+		$('.overlay').each(function(){
+			var obj = $(this);
+			obj.show();
+			$('.hint_post').post_it('<h1>Hint</h1><span class="message">'+message+'</span>');
+		});
 	
 	}
 };
 
 var domOutline = window.DomOutline({ onClick: function(element) {
-	hintMessage(element.id);
+	if ($(element).hasClass('game_form_input')) {
+		hint_messages['current'] = '<p>Write a word for "' + $(element).attr('name') + '" starting with "' + $('.current_letter').text()+'"</p>';
+		hintMessage('current');
+	} else if ($(element).hasClass('field')) {
+		hint_messages['current'] = '<p>Check if the word "' + $(element).find('label').text() + '" is a valid "' + $('.checking_word').text()+'" starting with "'+$('.current_letter').text()+'"</p>';
+		hintMessage('current');
+	} else if ($(element).hasClass('tooltips')) {
+		if (!$(element).html().match(/<(\w+)((?:\s+\w+(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/)) {
+			hint_messages['current'] = '<p>Click to edit your nickname</p>';
+			hintMessage('current');
+		}
+	} else {
+		hintMessage(element.id);
+	}
+	
+	return false;
 }});
 
 
@@ -170,7 +209,9 @@ function create_new_room(event) {
 };
 
 function submit_exit_room(event) {
-	socket.emit("exit_room");
+	if(!hinting) {
+		socket.emit("exit_room");	
+	}
 };
 
 function submit_join_room(event) {
@@ -262,8 +303,10 @@ function topmove() {
 
 
 function base() {	
-
-	$('.post-it').css('left', ($(document).width() - 200)/2 + 'px');
+	if ($('.post-it:visible')[0] != undefined) {	
+		$('.post-it').css('left', ($(document).width() - 200)/2 + 'px');
+		$('.close-button').css('left', $('.post-it:visible').position().left + $('.post-it:visible').width() + 'px');
+	}
 
 	var pos_top = $(".chat_inside").position().top;
 
@@ -370,6 +413,30 @@ function base_lr() {
 	base();
 };
 
+function focus_root() {
+	if ($('.paper2').hasClass('active')) {
+		$('#input_nickname')[0].focus();
+	}
+}
+
+function focus_home() {
+	if (!$('.paper5').hasClass('active')) {
+		$('#new_room')[0].focus();
+	} else {
+		$('#room_name')[0].focus();
+	}
+}
+
+function focus_room(){
+	if (sub_mode == 0 || sub_mode == 3) {
+		$('.scores .ready_play')[0].focus();
+	} else if (sub_mode == 1) {
+		$(".game_form input:text:visible:first").focus();
+	} else if (sub_mode == 2) {
+		$(".check_form input:visible:first").focus();
+	} 
+}
+
 function set_root_hr(){
 	
 	$('.paper').transition_hide(function() {
@@ -379,6 +446,7 @@ function set_root_hr(){
 		$('.root .paper.active').transition({"left": "31.5%"});
 		$('.root .paper:not(.active)').transition({"left": "15%", "rotate": "-20deg"});
 		base_hr();
+		focus_root();
 	});
 };
 
@@ -401,6 +469,7 @@ function set_home_hr(){
 		$('.paper5').transition({"left": "2%"});
 		$('.paper4').transition({"left": "52%"});
 		base_hr();
+		focus_home();
 	});
 };
 
@@ -423,6 +492,7 @@ function set_room_hr(){
 		$('.paper').css("top", "90px");
 		$('.paper').transition({"left": "30px"});
 		base_mr();
+		focus_room();
 	});
 };
 
@@ -447,6 +517,7 @@ function set_root_mr() {
 		$('.root .paper:not(.active)').css("rotate", "0");
 		$('.paper').transition({"left": "30px"});
 		base_mr();
+		focus_root();
 	});
 };
 
@@ -471,6 +542,7 @@ function set_home_mr() {
 		sub_mode_visible(home_divs, home_modes);
 		$('.paper').transition({"left": "30px"});
 		base_mr();
+		focus_home();
 	});
 };
 
@@ -501,6 +573,7 @@ function set_root_lr() {
 		set_mode(modes, '.root');
 		$('.paper').transition({"left": "10px"});
 		base_lr();
+		focus_root();
 	});
 };
 
@@ -525,6 +598,8 @@ function set_home_lr() {
 		sub_mode_visible(home_divs, home_modes);
 		$('.paper').transition({"left": "10px"});
 		base_lr();
+		focus_home();
+
 	});
 };
 
@@ -547,6 +622,7 @@ function set_room_lr() {
 		$('.paper').css("top", "155px");
 		$('.paper').transition({"left": "10px"});
 		base_lr();
+		focus_room();
 	});
 };
 
@@ -712,6 +788,7 @@ function resize_end() {
 $(document).ready(function() {
 	socket = io.connect(address);
 	$(window).resize(resize);
+	$(".logo").tooltip({placement: 'bottom', title: 'Enable\\Disable Hint mode'});
 	$(".root .paper:not(.active)").live('click', move_paper_root('.root'));
 	$(".home .paper:not(.active)").live('click', function(){
 		if (!high_resolution()) {
@@ -736,6 +813,7 @@ $(document).ready(function() {
 	socket.on("logged_in", function(data) {
 		$(".chat_outside").html("");
 		$(".chat_inside").html("");
+		old_name = data.user.nickname;
 		$(".tooltips").html(data.user.nickname);
 		current_user = data.user.id;
 		if (data.update) {
@@ -774,6 +852,7 @@ $(document).ready(function() {
 			if (leader) {
 				$('.scores .ready_play').css('visibility', 'visible');
 				$('.scores .ready_play').text('Play');
+				hint_messages['ready_play_1'] = '<p> Click in this button to start the game </p>';
 			} else {
 				$('.scores .ready_play').css('visibility', 'hidden');
 			}
@@ -790,7 +869,7 @@ $(document).ready(function() {
 				$('.game_form').append(
 					'<div class="field">' +
 						'<label class="game_form_label" for="game_form_' + category + '">' + category + ': </label>' +
-						'<input class="game_form_input" id="game_form_' + category + '" type="text" name="' + category + '"></input>' +
+						'<input class="game_form_input hint" id="game_form_' + category + '" type="text" name="' + category + '"></input>' +
 					'</div>'
 				);
 				
@@ -801,7 +880,7 @@ $(document).ready(function() {
 				socket.emit("get_timer");
 			}, 500);
 			stop_enabled = false;
-			$('.playing .ready_play').attr("disabled", "disabled");		
+			$('.playing .ready_play').addClass("disabled");		
 		}
 		if (data.room.game.status == 2) {
 			$('.current_letter').text(data.room.game.letter);
@@ -813,7 +892,7 @@ $(document).ready(function() {
 			$('.check_form').html("");
 			for (var word in data.room.game.words) {
 				$('.check_form').append(
-					'<div class="field">' +
+					'<div class="field hint">' +
 						'<input class="check_form_input" id="check_form_' + word + '" type="checkbox" name="' + word + '"></input>' +
 						'<label class="check_form_label" for="check_form_' + word + '">' + word + '</label>' +
 					'</div>'
@@ -829,6 +908,7 @@ $(document).ready(function() {
 			$('.current_letter').text('?');
 			$('.scores .time_text').html('<span class="time-number"></span>s remaining');
 			$('.scores .ready_play').text('Ready');
+			hint_messages['ready_play_1'] = '<p>The game will start when all players are ready or when the timer reaches 0.</p>';
 			$('.scores .ready_play').css('visibility', 'visible');
 			clearInterval(timer_interval);
 			timer_interval = setInterval(function (){
@@ -851,11 +931,11 @@ $(document).ready(function() {
 			if (data == 0) {
 				if ($('.game_form').full_filled()) {
 					$('.time_text').text('You can stop now!');
-					$('.playing .ready_play').removeAttr("disabled");
+					$('.playing .ready_play').removeClass("disabled");
 					stop_enabled = true;
 				} else {
 					$('.time_text').text('Fill all the fields!');
-					$('.playing .ready_play').attr("disabled", "disabled");		
+					$('.playing .ready_play').addClass("disabled");		
 					stop_enabled = false;
 				}
 			} 
@@ -883,7 +963,6 @@ $(document).ready(function() {
 	});
 
 	socket.on('check_request', function(data) {
-		console.log('check_request');
 		var data = $(".check_form").serializeObject();
 		socket.emit("next_response", data);
 	});
@@ -915,6 +994,10 @@ $(document).ready(function() {
 		$(".chat_inside").append(data+'\n');
 	});
 
+	socket.on("new_session", function(data) {
+		$('.logo').tooltip('show');
+	});
+
 
 
 	socket.on("debug", function(data) {
@@ -937,31 +1020,42 @@ $(document).ready(function() {
 
 	//Create room
 	$(".letters_label").click(function(){
-		var obj = $(this), 
-			element = "#"+obj.attr("for");
-		if (!$(element).prop('checked')) {
-			obj.css('color', '#FFF');
-			obj.css('background-color', '#333');
-		} else {
-			obj.css('color', '#000');
-			obj.css('background-color', '#EEE');
-		};
-		$(element).change();
-
+		if (!hinting) {
+			var obj = $(this), 
+				element = "#"+obj.attr("for");
+			if (!$(element).prop('checked')) {
+				obj.css('color', '#FFF');
+				obj.css('background-color', '#333');
+			} else {
+				obj.css('color', '#000');
+				obj.css('background-color', '#EEE');
+			};
+			$(element).change();
+	
+		}
+		
 	});
 
 	$(".create_room_cancel").click(function(){
-		$('.paper4').toggleClass('active', false);
-		$('.paper3').toggleClass('active', true);
-		$('.paper5').toggleClass('active', false);
-		if (sub_mode != chat) {
-			sub_mode = chat;
-			set_dict[home][res]();
+		if (!hinting) {
+			$('.paper4').toggleClass('active', false);
+			$('.paper3').toggleClass('active', true);
+			$('.paper5').toggleClass('active', false);
+			if (sub_mode != chat) {
+				sub_mode = chat;
+				set_dict[home][res]();
+			}
+			return false;
 		}
-		return false;
 	});
 
-	$(".create_room_submit").click(create_new_room);
+	$('.create_room_form').keypress(key_submit(create_new_room));
+	$(".create_room_submit").click(function(){
+		if (!hinting) {
+			return create_new_room();	
+		}
+		
+	});
 
 	//Exit room
 	$(".exit_room").click(submit_exit_room);
@@ -975,39 +1069,69 @@ $(document).ready(function() {
 
 	//Start game
 	$('.scores .ready_play').click(function() {
-		if (sub_mode == 0) {
-			submit_start_game();
-		} else {
-			submit_ready();
+		if (!hinting) {
+			if (sub_mode == 0) {
+				return submit_start_game();
+			} else {
+				return submit_ready();
+			}	
 		}
 	});
 
 	//Stop
-	$('.playing .ready_play').click(submit_stop);
+	$('.playing .ready_play').click(function(){
+		if (!hinting) {
+			return submit_stop();	
+		}
+	});
 	$(".game_form").keypress(key_submit(submit_stop));
 
 	//Ready
-	$('.checking .ready_play').click(submit_ready);
-
-	//Change name
-	$('.tooltips').click(function(){
-		if (!$(this).html().match(/<(\w+)((?:\s+\w+(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/)) {
-			var value = $(this).html();
-			$(this).html('<input type="text" class="change_name" value="'+value+'"></input>');
+	$('.checking .ready_play').click(function(){
+		if(!hinting) {
+			return submit_ready();	
 		}
 	});
 
+	//Change name
+	$('.tooltips').click(function(){
+		if (!hinting && showing_mode != root) {
+			if (!$(this).html().match(/<(\w+)((?:\s+\w+(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/)) {
+				old_name = $(this).html();
+				$(this).html('<input type="text" class="change_name" value="'+old_name+'"></input>');
+				$('.change_name').focus();
+			}	
+		}
+		
+	});
+
 	$('.change_name').live('keypress', key_submit(submit_change_name));
+	$('.change_name').live('blur', submit_change_name);
+
 
 	$('.logo').click(function(){
 		if (!hinting) {
+			$('.logo').addClass('logo2');
 			domOutline.start();
 		} else {
-			domOutline.start();
+			$('.logo').removeClass('logo2');
+			domOutline.stop();
 		}
 		hinting = !hinting;
 		
 	});
+
+	function hide_overlay() {
+		$('.overlay').hide();
+		$('.post-it').hide();
+		$('.close-button').hide();
+		old_focus.focus();
+		return false;
+	};
+
+	$('.overlay').click(hide_overlay);
+	$('.post-it').click(hide_overlay);
+	$('.close-button').click(hide_overlay);
 
 	res = get_res();
 	base_dict[res]();
