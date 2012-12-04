@@ -281,7 +281,7 @@ Room.prototype.continue_checking = function(socket, user_id) {
 			if (this.current_round < this.rounds) {
 				this.game = {
 					status: 3,
-					time: this.stop_time + this.check_time,
+					time: (this.stop_time / 1) + (this.check_time/ 1),
 					timer: (new Date).getTime()
 				};	
 			} else {
