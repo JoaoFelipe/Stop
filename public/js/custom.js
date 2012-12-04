@@ -72,7 +72,8 @@ var hint_messages = {
 	,'paper_title_3': '<p> This is the room name.</p>'
 	,'ready_play_2': '<p> You can stop after filling all fields and after the timer reaches 0. </p>' 	
 	,'ready_play_3': '<p> The checking will finish when all players are ready or when the timer reaches 0. </p>' 	
-
+	,'exit': '<p> Click here to exit game </p>'
+	,'current_letter': '<p> This is the current letter of the round </p>'
 
 };
 
@@ -972,7 +973,11 @@ $(document).ready(function() {
 	$(".login_form input").keypress(key_submit(submit_login));
 
 	//Exit
-	$(".exit_button").click(submit_exit);
+	$(".exit_button").click(function(){
+		if (!hinting) {
+			return submit_exit();	
+		}
+	});
 
 	//Chat outside
 	$(".text_outside").keypress(key_submit(function(){
