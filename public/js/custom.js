@@ -226,6 +226,7 @@ function submit_start_game(event) {
 }
 
 function submit_ready(event) {
+	$('.ready_play').addClass('marked');
 	socket.emit("ready");
 }
 
@@ -846,6 +847,9 @@ $(document).ready(function() {
 	});
 
 	socket.on("room_update", function(data) {
+		console.log(data);
+		$('.ready_play').removeClass('marked');
+	
 		$('.current_round').text('Round ' + data.room.current_round + '/' + data.room.rounds);
 		$('.room .paper_title').text(data.room.name);
 		$('.score-list').html('');
@@ -853,13 +857,17 @@ $(document).ready(function() {
 		for (var user_id in data.room.users) {
 			var user = data.room.users[user_id];
 			$('.score-list').append(
-				'<tr '+ (user.leader? 'class="leader"': "") +'>'+
+				'<tr class="user_in_list'+ (user.leader? ' leader': "") + (user.ready? ' ready_user': "") +'">'+
 					'<td class="player_name">' + user.nickname + '</td>' +
 					'<td class="player_score">' + user.score + '</td>' +
 				'</tr>'
 			);
 			if (user_id == current_user && user.leader) {
 				leader = true;
+				if (user.ready){
+
+					$('.ready_play').addClass('marked');
+				}
 			}
 		}
 		if (data.room.game.status == 0) {

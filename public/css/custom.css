@@ -633,3 +633,11 @@ input[type="text"].change_name {
 	display: block;
 	float: left;
 }
+
+.marked {
+	border: 3px solid green;
+}
+
+.ready_user {
+	color: green;
+}

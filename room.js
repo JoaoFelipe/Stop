@@ -81,7 +81,7 @@ Room.prototype.get_info = function(context) {
 		check_time: this.check_time,
 		categories: this.categories,
 		users: {},
-		user_count: this.user_count()
+		user_count: this.user_count(),
 	}
 	for (var i in this.users) {
 		var user = context.users[i];
@@ -89,8 +89,17 @@ Room.prototype.get_info = function(context) {
 			id: user.id,
 			nickname: user.nickname,
 			score: this.users[i],
-			leader: (user.id == this.leader)
+			leader: (user.id == this.leader),
+			ready: false
 		}; 
+		if (this.game.status > 1) {
+			for (var j in this.ready_users) {
+				var suser = this.ready_users[j];
+				if (user.id == suser) {
+					list.users[user.id]['ready'] = true;
+				}
+			}	
+		}
 	}
 	return list;
 };
@@ -158,6 +167,7 @@ Room.prototype.start_game = function(socket) {
 	this.points = {};
 	this.points_users = {};
 	this.stopped = false;
+	this.ready_users = [];
 	this.game = {
 		status: 1,
 		letter: this.order[this.current_round],
@@ -237,6 +247,7 @@ Room.prototype.continue_pre_checking = function(socket, user_id) {
 	if (this.all_stopped()) {
 		this.current_category = 0;
 		this.stopped = false;
+		this.ready_users = [];
 		this.game = {
 			status: 2,
 			letter: this.order[this.current_round],
@@ -321,6 +332,7 @@ Room.prototype.continue_checking = function(socket, user_id) {
 				}, 500);	
 			} else {
 				clearInterval(this.timer_interval);
+				this.ready_users = [];
 				this.timer_interval = setInterval(function (){ return false; }, 500);
 				this.game = {
 					status: 4

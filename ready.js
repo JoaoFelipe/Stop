@@ -28,8 +28,8 @@ var ready = function(socket) {
 				}
 			}
 			
+			room.room_update(socket, true, true, false, false);	
 		}
-
 		socket.emit('success', {"message": "Successfully sent ready", "code": action_code});		
 	});
 };
