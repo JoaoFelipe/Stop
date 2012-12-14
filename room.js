@@ -41,12 +41,14 @@ function Room(name, rounds, max_players, stop_time, check_time, letters, categor
 	this.points_users = {};
 	this.current_category = 0;
 	this.ready_users = [];
+	this.timer_interval = setInterval(function (){ return false; }, 500);
+
 };
 
 
 Room.prototype.is_valid = function() {
 	try {
-		check(this.name, "Invalid name. The name should be Alphanumeric, containing a maximum of 20 caracters").isAlphanumeric().max(20);
+		check(this.name, "Invalid name. The name should be Alphanumeric, containing a maximum of 25 caracters").is(/^[a-zAA-Z '`_-]+$/).len(1, 25);
 		check(this.rounds, "Invalid rounds count. The number of rounds should be numeric, containing a maximum of selected letters").isNumeric().min(1).max(this.letters.length);
 		check(this.max_players, "Invalid players count. The number of players should be a number greater or equals to 0").isNumeric().min(0);
 		check(this.stop_time, "Invalid stop time. The stop time should be a number greater or equals to 0").isNumeric().min(0);
@@ -144,6 +146,10 @@ Room.prototype.room_update = function(socket, to_user, to_room, update_user, upd
 };
 
 Room.prototype.start_game = function(socket) {
+	clearInterval(this.timer_interval);
+	this.timer_interval = setInterval(function (){ return false; }, 500);
+
+	this.monitor = true;
 	this.words = {};
 	this.points = {};
 	this.points_users = {};
@@ -154,6 +160,7 @@ Room.prototype.start_game = function(socket) {
 		time: this.stop_time,
 		timer: (new Date).getTime()
 	};
+
 	this.room_update(socket, true, true, true, true);
 };
 
@@ -221,6 +228,7 @@ Room.prototype.all_stopped = function() {
 };
 
 Room.prototype.continue_pre_checking = function(socket, user_id) {
+	var room = this;
 	this.stop_response.push(user_id);
 	if (this.all_stopped()) {
 		this.current_category = 0;
@@ -233,6 +241,13 @@ Room.prototype.continue_pre_checking = function(socket, user_id) {
 			time: this.check_time,
 			timer: (new Date).getTime()
 		};
+		clearInterval(this.timer_interval);
+		this.timer_interval = setInterval(function (){
+			var time = (room.game.time - Math.floor(((new Date).getTime() - room.game.timer)/1000));
+			if (time <= 0 && !room.stopped) {
+				room.next_checking(socket);
+			}
+		}, 500);
 		this.room_update(socket, true, true, true, true);
 	}
 };
@@ -249,7 +264,7 @@ Room.prototype.calculate_scores = function() {
 					this.users[users[0]] += 10;
 				} else {
 					for (var user_i in users) {
-						this.users[user_i] += 5;
+						this.users[users[user_i]] += 5;
 					}
 				}
 			}
@@ -259,7 +274,7 @@ Room.prototype.calculate_scores = function() {
 };
 
 Room.prototype.continue_checking = function(socket, user_id) {
-
+	var room = this;
 	this.stop_response.push(user_id);
 	if (this.all_stopped()) {
 		this.stopped = false;
@@ -274,17 +289,35 @@ Room.prototype.continue_checking = function(socket, user_id) {
 				time: this.check_time,
 				timer: (new Date).getTime()
 			};
+			clearInterval(this.timer_interval);
+			this.timer_interval = setInterval(function (){
+				var time = (room.game.time - Math.floor(((new Date).getTime() - room.game.timer)/1000));
+				if (time <= 0 && !room.stopped) {
+					room.next_checking(socket);
+				}
+			}, 500);
 		} else {
 			this.ready_users = [];
 			this.current_round++;
+			socket.emit('debug', {words: this.words, points: this.points, players: this.points_users, users: this.users});
 			this.calculate_scores();
+			socket.emit('debug', {words: this.words, points: this.points, players: this.points_users, users: this.users});
 			if (this.current_round < this.rounds) {
 				this.game = {
 					status: 3,
 					time: (this.stop_time / 1) + (this.check_time/ 1),
 					timer: (new Date).getTime()
 				};	
+				clearInterval(this.timer_interval);
+				this.timer_interval = setInterval(function (){
+					var time = (room.game.time - Math.floor(((new Date).getTime() - room.game.timer)/1000));
+					if (time <= 0 && !room.stopped) {
+						room.start_game(socket);
+					}
+				}, 500);	
 			} else {
+				clearInterval(this.timer_interval);
+				this.timer_interval = setInterval(function (){ return false; }, 500);
 				this.game = {
 					status: 4
 				}

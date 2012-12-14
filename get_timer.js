@@ -22,12 +22,6 @@ var get_timer = function(socket) {
 			socket.emit("update_timer", time);
 		} else {
 			socket.emit("update_timer", 0);
-			if (room.game.status == 2 && !room.stopped) {
-				room.next_checking(socket);
-			}
-			if (room.game.status == 3 && !room.stopped) {
-				room.start_game(socket);
-			}
 		}	
 	});
 };

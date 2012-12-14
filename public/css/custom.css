@@ -222,7 +222,7 @@ body {
 .paper p:last-child {margin: 0;}
 .paper ul {margin: 0 0 20px;}
 
-
+/*
 .paper1:not(.active):hover ,
 .paper2:not(.active):hover {
 	border: 5px solid #00BBFF;
@@ -232,7 +232,7 @@ body {
 .paper2:not(.active):hover h1 {
 	color: #00BBFF;
 }
-
+*/
 
 
 .paper_form {

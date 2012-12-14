@@ -444,8 +444,8 @@ function set_root_hr(){
 		base_hr();
 		showing_mode = root;
 		set_mode(modes, '.root');
-		$('.root .paper.active').transition({"left": "31.5%"});
-		$('.root .paper:not(.active)').transition({"left": "15%", "rotate": "-20deg"});
+		$('.paper1').transition({"left": "2%"});
+		$('.paper2').transition({"left": "52%"});
 		base_hr();
 		focus_root();
 	});
@@ -453,9 +453,8 @@ function set_root_hr(){
 
 function keep_root_hr(){
 	base_hr();
-	$('.root .paper.active').css('left', '31.5%');
-	$('.root .paper:not(.active)').css('left', '15%');
-	$('.root .paper:not(.active)').css('rotate',  "-20deg");	
+	$('.paper1').css('left', '2%');
+	$('.paper2').css('left', '52%');
 	base_hr();
 };
 
@@ -466,9 +465,9 @@ function set_home_hr(){
 		showing_mode = home;
 		set_mode(modes, '.home');
 		sub_mode_visible(home_divs, home_modes);
-		$('.paper3').transition({"left": "2%"});
-		$('.paper5').transition({"left": "2%"});
-		$('.paper4').transition({"left": "52%"});
+		$('.paper3').transition({"left": "52%"});
+		$('.paper5').transition({"left": "52%"});
+		$('.paper4').transition({"left": "2%"});
 		base_hr();
 		focus_home();
 	});
@@ -477,9 +476,9 @@ function set_home_hr(){
 function keep_home_hr(){
 	base_hr();
 	sub_mode_visible(home_divs, home_modes);
-	$('.paper3').css('left', '2%');
-	$('.paper5').css('left', '2%');
-	$('.paper4').css('left', '52%');
+	$('.paper3').css('left', '52%');
+	$('.paper5').css('left', '52%');
+	$('.paper4').css('left', '2%');
 	base_hr();
 };
 
@@ -790,7 +789,13 @@ $(document).ready(function() {
 	socket = io.connect(address);
 	$(window).resize(resize);
 	$(".logo").tooltip({placement: 'bottom', title: 'Enable\\Disable Hint mode'});
-	$(".root .paper:not(.active)").live('click', move_paper_root('.root'));
+	$(".root .paper:not(.active)").live('click', function(){
+		if (!high_resolution()) {
+			move_paper_low('.root')();
+		}
+	});
+
+	//move_paper_root('.root'));
 	$(".home .paper:not(.active)").live('click', function(){
 		if (!high_resolution()) {
 			move_paper_low('.home')();
@@ -816,6 +821,9 @@ $(document).ready(function() {
 		$(".chat_inside").html("");
 		old_name = data.user.nickname;
 		$(".tooltips").html(data.user.nickname);
+		if ($('#room_name').val() == "") {
+			$('#room_name').val(data.user.nickname + "'s room");	
+		}
 		current_user = data.user.id;
 		if (data.update) {
 			to_home();
@@ -992,11 +1000,18 @@ $(document).ready(function() {
 	}));
 
 	socket.on("chat_outside", function(data) {
-		$(".chat_outside").append(data+'\n');
+		$(".chat_outside").each(function(){
+			$(this).append(data+'\n');
+			this.scrollTop = this.scrollHeight;
+		});
+
 	});
 
 	socket.on("chat_inside", function(data) {
-		$(".chat_inside").append(data+'\n');
+		$(".chat_inside").each(function(){
+			$(this).append(data+'\n');
+			this.scrollTop = this.scrollHeight;
+		});
 	});
 
 	socket.on("new_session", function(data) {
