@@ -1,4 +1,5 @@
 var check        = require('validator').check,
+	sanitize     = require('validator').sanitize,
 	functions    = require('./functions'),
 	update_rooms = require('./update_rooms').update_rooms,
 	random_token = functions.random_token;
@@ -9,7 +10,7 @@ shuffle = function(o){ //v1.0
 	return o;
 };
 
-function Room(name, rounds, max_players, stop_time, check_time, letters, categories, user) {
+function Room(name, rounds, max_players, stop_time, check_time, interval_time, letters, categories, user) {
 	this.id = room_id++;
 	this.status = 0;
 	this.leader = user.id;
@@ -21,10 +22,12 @@ function Room(name, rounds, max_players, stop_time, check_time, letters, categor
 	this.stop_time = stop_time;
 	this.letters = letters;
 	this.check_time = check_time;
+	this.interval_time = interval_time;
 	this.categories = [];
 	for (var i = 0; i < categories.length; i++) {
-		if (categories[i] != "") {
-			this.categories.push(categories[i]);
+		var category = sanitize(categories[i]).trim();
+		if (category != "") {
+			this.categories.push(category);
 		}
 	}
 
@@ -53,6 +56,7 @@ Room.prototype.is_valid = function() {
 		check(this.max_players, "Invalid players count. The number of players should be a number greater or equals to 0").isNumeric().min(0);
 		check(this.stop_time, "Invalid stop time. The stop time should be a number greater or equals to 0").isNumeric().min(0);
 		check(this.check_time, "Invalid check time. The check time should be a number greater or equals to 5").isNumeric().min(5);
+		check(this.interval_time, "Invalid interval time. The interval time should be a number greater or equals to 5").isNumeric().min(5);
 		check(this.letters.length, "Invalid letters number. You should select at least one letter").isNumeric().min(1);
 		check(this.categories.length, "Invalid categories number. You should write at least one category").isNumeric().min(1);
 		return { valid: true };
@@ -305,7 +309,7 @@ Room.prototype.continue_checking = function(socket, user_id) {
 			if (this.current_round < this.rounds) {
 				this.game = {
 					status: 3,
-					time: (this.stop_time / 1) + (this.check_time/ 1),
+					time: this.interval_time / 1,
 					timer: (new Date).getTime()
 				};	
 				clearInterval(this.timer_interval);

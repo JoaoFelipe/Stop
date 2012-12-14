@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Town Country River</title>
+        <title>Stop! The guessing game</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
         <link href="bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" media="screen">
@@ -54,6 +54,10 @@
                         <h1 class="paper_title"> Rooms </h1>
                         <a href="#" class="new_room hint" id="new_room"> New Room </a>
                         <input type="text" class="search_room hint" id="search_room" placeholder="Search room"> 
+                        <div class="no_rooms">
+                            <span class="no_rooms_line1">No rooms were found.</span>
+                            <span class="no_rooms_line2">Create a <a href="#" class="new_room hint" id="new_room"> New Room </a></span>
+                        </div>
                         <div class="page_container"> 
                             <ul class="rooms_header">
                                 <li class="room_row header">
@@ -73,14 +77,29 @@
                         <form class="create_room_form">
                             <label class="create_form_label" for="room_name"> Room Name: </label>
                             <input class="create_form_input hint" id="room_name" type="text" name="name">     
+                            <div class="clear"></div>
+                            
                             <label class="create_form_label" for="room_rounds"> Rounds: </label>
                             <input class="create_form_input hint" id="room_rounds" type="text" name="rounds" value="10">     
+                            <div class="clear"></div>
+
                             <label class="create_form_label" for="room_players"> Players: </label>
                             <input class="create_form_input hint" id="room_players" type="text" name="players" value="0">    
+                            <div class="clear"></div>
+
                             <label class="create_form_label" for="room_stop"> Stop Time: </label>
                             <input class="create_form_input hint" id="room_stop" type="text" name="stop" value="60">    
+                            <div class="clear"></div>
+                            
                             <label class="create_form_label" for="room_check"> Check Time: </label>
                             <input class="create_form_input hint" id="room_check" type="text" name="check" value="20">
+                            <div class="clear"></div>
+        
+                            <label class="create_form_label" for="room_interval"> Interval Time: </label>
+                            <input class="create_form_input hint" id="room_interval" type="text" name="interval" value="20">
+                            <div class="clear"></div>
+
+                            <span class="create_form_label_letters"> Possible Letters: <span class="how_many_selected">(21 selected)</span> </span>
                             <div class="letter_list hint" id="letter_list"> 
                                 <input type="checkbox" name="A" id="id_A" class="letters" checked="checked"/><label class="letters_label" for="id_A">A</label>
                                 <input type="checkbox" name="B" id="id_B" class="letters" checked="checked"/><label class="letters_label" for="id_B">B</label>
@@ -91,26 +110,29 @@
                                 <input type="checkbox" name="G" id="id_G" class="letters" checked="checked"/><label class="letters_label" for="id_G">G</label>
                                 <input type="checkbox" name="H" id="id_H" class="letters" checked="checked"/><label class="letters_label" for="id_H">H</label>
                                 <input type="checkbox" name="I" id="id_I" class="letters" checked="checked"/><label class="letters_label" for="id_I">I</label>
-                                <input type="checkbox" name="J" id="id_J" class="letters" checked="checked"/><label class="letters_label" for="id_J">J</label>
-                                <input type="checkbox" name="K" id="id_K" class="letters" checked="checked"/><label class="letters_label" for="id_K">K</label>
+                                <input type="checkbox" name="J" id="id_J" class="letters"/><label class="letters_label" for="id_J">J</label>
+                                <input type="checkbox" name="K" id="id_K" class="letters"/><label class="letters_label" for="id_K">K</label>
                                 <input type="checkbox" name="L" id="id_L" class="letters" checked="checked"/><label class="letters_label" for="id_L">L</label>
                                 <input type="checkbox" name="M" id="id_M" class="letters" checked="checked"/><label class="letters_label" for="id_M">M</label>
                                 <input type="checkbox" name="N" id="id_N" class="letters" checked="checked"/><label class="letters_label" for="id_N">N</label>
                                 <input type="checkbox" name="O" id="id_O" class="letters" checked="checked"/><label class="letters_label" for="id_O">O</label>
                                 <input type="checkbox" name="P" id="id_P" class="letters" checked="checked"/><label class="letters_label" for="id_P">P</label>
-                                <input type="checkbox" name="Q" id="id_Q" class="letters" checked="checked"/><label class="letters_label" for="id_Q">Q</label>
+                                <input type="checkbox" name="Q" id="id_Q" class="letters"/><label class="letters_label" for="id_Q">Q</label>
                                 <input type="checkbox" name="R" id="id_R" class="letters" checked="checked"/><label class="letters_label" for="id_R">R</label>
                                 <input type="checkbox" name="S" id="id_S" class="letters" checked="checked"/><label class="letters_label" for="id_S">S</label>
                                 <input type="checkbox" name="T" id="id_T" class="letters" checked="checked"/><label class="letters_label" for="id_T">T</label>
                                 <input type="checkbox" name="U" id="id_U" class="letters" checked="checked"/><label class="letters_label" for="id_U">U</label>
                                 <input type="checkbox" name="V" id="id_V" class="letters" checked="checked"/><label class="letters_label" for="id_V">V</label>
                                 <input type="checkbox" name="W" id="id_W" class="letters" checked="checked"/><label class="letters_label" for="id_W">W</label>
-                                <input type="checkbox" name="X" id="id_X" class="letters" checked="checked"/><label class="letters_label" for="id_X">X</label>
+                                <input type="checkbox" name="X" id="id_X" class="letters"/><label class="letters_label" for="id_X">X</label>
                                 <input type="checkbox" name="Y" id="id_Y" class="letters" checked="checked"/><label class="letters_label" for="id_Y">Y</label>
-                                <input type="checkbox" name="Z" id="id_Z" class="letters" checked="checked"/><label class="letters_label" for="id_Z">Z</label>
+                                <input type="checkbox" name="Z" id="id_Z" class="letters"/><label class="letters_label" for="id_Z">Z</label>
                                 <div class="clear"></div>
                             </div>
-                            <textarea name="categories" class="create_room_categories_text hint" id="create_room_categories_text">Town Country River</textarea>
+                            <label class="create_form_label_category" for="room_rounds"> Categories: (Separated by space) </label>
+                            <textarea name="categories" class="create_room_categories_text hint" id="create_room_categories_text">Town
+Country
+River</textarea>
                             <button class="create_room_submit hint paper_btn" id="create_room_submit"> Create Room </button>
                             <button class="create_room_cancel hint paper_btn" id="create_room_cancel"> Cancel </button>
                             <div class="clear"> </div>

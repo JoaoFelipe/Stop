@@ -1,6 +1,7 @@
 var action_code  = "2",
 	Room         = require('./room').Room,
 	update_rooms = require('./update_rooms').update_rooms;
+
    
 
 var create_room = function(socket) {
@@ -19,7 +20,7 @@ var create_room = function(socket) {
 			}
 		}
 		var categories = data.categories.split(/\s/);
-		var room = new Room(data.name, data.rounds, data.players, data.stop, data.check, letters, categories, user);
+		var room = new Room(data.name, data.rounds, data.players, data.stop, data.check, data.interval, letters, categories, user);
 
 		var validate = room.is_valid();
 		if (!validate.valid) {

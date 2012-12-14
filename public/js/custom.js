@@ -55,6 +55,7 @@ var hint_messages = {
 	,'room_players': '<p>Write the maximum number of players here. </p> <p>If it is 0, there will be no maximum number of players.</p>'
 	,'room_stop': '<p>Write the stop time in seconds here. </p> <p>If it is 0, the players can ask stop as soon as they fill all the fields.</p>'
 	,'room_check': '<p>Write the checking time in seconds here. </p> <p> If the timer reaches 0, the checking process will end.</p>'
+	,'room_interval': '<p>Write the interval time in seconds here. </p> <p> If the timer reaches 0, the interval will end and a new round will start.</p>'
 	,'letter_list': '<p>Select the letters that can be randomly selected for the game.</p>'
 	,'create_room_categories_text': '<p>Write the categories for the room separated by spaces.</p>'
 	,'create_room_submit': '<p>Use this button to create the room.</p>'
@@ -244,23 +245,29 @@ function submit_change_name() {
 function search_room() {
 	var search_field = $('.search_room').val();
 	$('ul.rooms').html("");
-	for (var room_index in rooms) {
-		var room = rooms[room_index];
-		if (room.name.indexOf(search_field) == -1) {
-			continue;
+	if (rooms.length == 0 ) {
+		$(".no_rooms").show();
+		$(".page_container").hide();
+	} else {
+		$(".page_container").show();
+		$(".no_rooms").hide();	
+		for (var room_index in rooms) {
+			var room = rooms[room_index];
+			if (room.name.indexOf(search_field) == -1) {
+				continue;
+			}
+			$('ul.rooms').append(
+				'<li class="room_row">' +
+					'<a href="#" class="room_link" id="room_' + room.id + '">' +
+						'<span class="room_name">' + room.name + '</span>' +
+						'<span class="room_players">' + room.user_count + '/' + room.max_players + '</span>' +
+						'<span class="room_status">' + room.current_round + '/' + room.rounds + '</span>' +
+					'</a>' +
+				'</li>'
+			);
 		}
-		$('ul.rooms').append(
-			'<li class="room_row">' +
-				'<a href="#" class="room_link" id="room_' + room.id + '">' +
-					'<span class="room_name">' + room.name + '</span>' +
-					'<span class="room_players">' + room.user_count + '/' + room.max_players + '</span>' +
-					'<span class="room_status">' + room.current_round + '/' + room.rounds + '</span>' +
-				'</a>' +
-			'</li>'
-		);
+		$('.page_container').pajinate();
 	}
-	$('.page_container').pajinate();
-		
 };
 
 function sub_mode_visible(elements, modes) {
@@ -1041,18 +1048,32 @@ $(document).ready(function() {
 	//Create room
 	$(".letters_label").click(function(){
 		if (!hinting) {
+			$('.how_many_selected').text('');
+			var precount = $('.letters').filter(':checked').length;
 			var obj = $(this), 
 				element = "#"+obj.attr("for");
 			if (!$(element).prop('checked')) {
 				obj.css('color', '#FFF');
 				obj.css('background-color', '#333');
+				if (precount == 25) {
+					$('.how_many_selected').text('(All selected)');
+				} else {
+					$('.how_many_selected').text('('+(precount+1)+' selected)');
+				}
 			} else {
 				obj.css('color', '#000');
 				obj.css('background-color', '#EEE');
+				
+				if (precount == 1) {
+					$('.how_many_selected').text('(None selected)');
+				} else {
+					$('.how_many_selected').text('('+(precount-1)+' selected)');
+				}
 			};
 			$(element).change();
-	
+		
 		}
+
 		
 	});
 
@@ -1069,7 +1090,7 @@ $(document).ready(function() {
 		}
 	});
 
-	$('.create_room_form').keypress(key_submit(create_new_room));
+	$('.create_room_form input').keypress(key_submit(create_new_room));
 	$(".create_room_submit").click(function(){
 		if (!hinting) {
 			return create_new_room();	
