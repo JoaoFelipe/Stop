@@ -128,6 +128,9 @@ Room.prototype.disconnect_user = function(socket, user_id) {
 	if (this.leader == user_id) {
 		next_leader = this.get_different_user(user_id);
 	}
+	var message = user.nickname + " left the room";
+	socket.broadcast.to("room"+user.room).emit("chat_inside", message);
+	socket.emit("chat_inside", message);
 	user.room = null;
 	if (next_leader == -1) {
 		delete socket.context.rooms[this.id];
@@ -138,6 +141,7 @@ Room.prototype.disconnect_user = function(socket, user_id) {
 	this.leader = next_leader;
 	update_rooms(socket, true, true);
 	this.room_update(socket, false, true, false, false);
+
 };
 
 Room.prototype.join_user = function(socket, user_id) {

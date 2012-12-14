@@ -24,6 +24,9 @@ var stop_s = function(socket) {
 		}
 		room.start_checking(socket, user.id);
 		socket.emit('success', {"message": "Successfully stopped", "code": action_code});		
+		var message = user.nickname + " asked stop!";
+		socket.broadcast.to("room"+user.room).emit("chat_inside", message);
+		socket.emit("chat_inside", message);
 	});
 };
 

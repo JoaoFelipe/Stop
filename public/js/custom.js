@@ -847,9 +847,10 @@ $(document).ready(function() {
 	});
 
 	socket.on("room_update", function(data) {
-		console.log(data);
-		$('.ready_play').removeClass('marked');
-	
+		if (data.update) {
+			$('.ready_play').removeClass('marked');	
+		}
+		
 		$('.current_round').text('Round ' + data.room.current_round + '/' + data.room.rounds);
 		$('.room .paper_title').text(data.room.name);
 		$('.score-list').html('');
@@ -870,81 +871,82 @@ $(document).ready(function() {
 				}
 			}
 		}
-		if (data.room.game.status == 0) {
-			$('.current_letter').text('?');
-			$('.scores .time_text').text('');
-			if (leader) {
+		if (data.update) {
+
+			if (data.room.game.status == 0) {
+				$('.current_letter').text('?');
+				$('.scores .time_text').text('');
+				if (leader) {
+					$('.scores .ready_play').css('visibility', 'visible');
+					$('.scores .ready_play').text('Play');
+					hint_messages['ready_play_1'] = '<p> Click in this button to start the game </p>';
+				} else {
+					$('.scores .ready_play').css('visibility', 'hidden');
+				}
+			}
+			if (data.room.game.status == 1) {
+				$('.current_letter').text(data.room.game.letter);
+				$('.phrase_letter').text(data.room.game.letter);
+				$('.playing .time_text').html('<span class="time-number"></span>s remaining');
+				$('.playing .ready_play').css('visibility', 'visible');
+				$('.playing .ready_play').text('Stop!');
+				$('.game_form').html("");
+				for (var category_id in data.room.categories) {
+					var category = data.room.categories[category_id];
+					$('.game_form').append(
+						'<div class="field">' +
+							'<label class="game_form_label" for="game_form_' + category + '">' + category + ': </label>' +
+							'<input class="game_form_input hint" id="game_form_' + category + '" type="text" name="' + category + '"></input>' +
+						'</div>'
+					);
+					
+				}
+				$('.game_form').append('<div class="clear"></div>');
+				clearInterval(timer_interval);
+				timer_interval = setInterval(function (){
+					socket.emit("get_timer");
+				}, 500);
+				stop_enabled = false;
+				$('.playing .ready_play').addClass("disabled");		
+			}
+			if (data.room.game.status == 2) {
+				$('.current_letter').text(data.room.game.letter);
+				$('.phrase_letter').text(data.room.game.letter);
+				$('.checking_word').text(data.room.game.category);
+				$('.checking .time_text').html('<span class="time-number"></span>s remaining');
+				$('.checking .ready_play').css('visibility', 'visible');
+				$('.checking .ready_play').text('Ready');
+				$('.check_form').html("");
+				for (var word in data.room.game.words) {
+					$('.check_form').append(
+						'<div class="field hint">' +
+							'<input class="check_form_input" id="check_form_' + word + '" type="checkbox" name="' + word + '"></input>' +
+							'<label class="check_form_label" for="check_form_' + word + '">' + word + '</label>' +
+						'</div>'
+					);
+				}
+				$('.check_form').append('<div class="clear"></div>');
+				clearInterval(timer_interval);
+				timer_interval = setInterval(function (){
+					socket.emit("get_timer");
+				}, 500);
+			}
+			if (data.room.game.status == 3) {
+				$('.current_letter').text('?');
+				$('.scores .time_text').html('<span class="time-number"></span>s remaining');
+				$('.scores .ready_play').text('Ready');
+				hint_messages['ready_play_1'] = '<p>The game will start when all players are ready or when the timer reaches 0.</p>';
 				$('.scores .ready_play').css('visibility', 'visible');
-				$('.scores .ready_play').text('Play');
-				hint_messages['ready_play_1'] = '<p> Click in this button to start the game </p>';
-			} else {
+				clearInterval(timer_interval);
+				timer_interval = setInterval(function (){
+					socket.emit("get_timer");
+				}, 500);
+			}
+			if (data.room.game.status == 4) {
+				$('.current_letter').text('?');
+				$('.scores .time_text').text('Game finished!');
 				$('.scores .ready_play').css('visibility', 'hidden');
 			}
-		}
-		if (data.room.game.status == 1) {
-			$('.current_letter').text(data.room.game.letter);
-			$('.phrase_letter').text(data.room.game.letter);
-			$('.playing .time_text').html('<span class="time-number"></span>s remaining');
-			$('.playing .ready_play').css('visibility', 'visible');
-			$('.playing .ready_play').text('Stop!');
-			$('.game_form').html("");
-			for (var category_id in data.room.categories) {
-				var category = data.room.categories[category_id];
-				$('.game_form').append(
-					'<div class="field">' +
-						'<label class="game_form_label" for="game_form_' + category + '">' + category + ': </label>' +
-						'<input class="game_form_input hint" id="game_form_' + category + '" type="text" name="' + category + '"></input>' +
-					'</div>'
-				);
-				
-			}
-			$('.game_form').append('<div class="clear"></div>');
-			clearInterval(timer_interval);
-			timer_interval = setInterval(function (){
-				socket.emit("get_timer");
-			}, 500);
-			stop_enabled = false;
-			$('.playing .ready_play').addClass("disabled");		
-		}
-		if (data.room.game.status == 2) {
-			$('.current_letter').text(data.room.game.letter);
-			$('.phrase_letter').text(data.room.game.letter);
-			$('.checking_word').text(data.room.game.category);
-			$('.checking .time_text').html('<span class="time-number"></span>s remaining');
-			$('.checking .ready_play').css('visibility', 'visible');
-			$('.checking .ready_play').text('Ready');
-			$('.check_form').html("");
-			for (var word in data.room.game.words) {
-				$('.check_form').append(
-					'<div class="field hint">' +
-						'<input class="check_form_input" id="check_form_' + word + '" type="checkbox" name="' + word + '"></input>' +
-						'<label class="check_form_label" for="check_form_' + word + '">' + word + '</label>' +
-					'</div>'
-				);
-			}
-			$('.check_form').append('<div class="clear"></div>');
-			clearInterval(timer_interval);
-			timer_interval = setInterval(function (){
-				socket.emit("get_timer");
-			}, 500);
-		}
-		if (data.room.game.status == 3) {
-			$('.current_letter').text('?');
-			$('.scores .time_text').html('<span class="time-number"></span>s remaining');
-			$('.scores .ready_play').text('Ready');
-			hint_messages['ready_play_1'] = '<p>The game will start when all players are ready or when the timer reaches 0.</p>';
-			$('.scores .ready_play').css('visibility', 'visible');
-			clearInterval(timer_interval);
-			timer_interval = setInterval(function (){
-				socket.emit("get_timer");
-			}, 500);
-		}
-		if (data.room.game.status == 4) {
-			$('.current_letter').text('?');
-			$('.scores .time_text').text('Game finished!');
-			$('.scores .ready_play').css('visibility', 'hidden');
-		}
-		if (data.update) {
 			to_room(data.room);	
 		}
 	});

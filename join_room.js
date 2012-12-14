@@ -27,6 +27,9 @@ var join_room = function(socket) {
 			socket.join("room" + room.id);
 			socket.emit('success', {"message": "Successfully joined in room", "code": action_code});
 			socket.leave('out');
+			var message = user.nickname + " joined the room";
+			socket.broadcast.to("room"+user.room).emit("chat_inside", message);
+			socket.emit("chat_inside", message);
 		} else {
 			socket.emit('error', { message: "Room is full", code: action_code });
 			return;
