@@ -12,9 +12,8 @@ var join_room = function(socket) {
 		}
 		var user = socket.user;
 		var room = null;
-		try {
-			room = socket.context.rooms[data.id]; 
-		} catch (e) {
+		room = socket.context.rooms[data.id]; 
+		if (room == undefined) {	
 			socket.emit('error', { message: "Room not found", code: action_code });
 			return;
 		}
