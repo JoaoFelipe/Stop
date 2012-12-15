@@ -33,14 +33,22 @@ app.configure(function () {
      
 });
 
-var s = app.listen(process.env.PORT || 5000);
+var port = process.env.PORT || 5000;
+console.log('Port: ' + port);
+var s = app.listen(port);
+
 
 server = io.listen(s).set( 'log level', 1 );
 
-server.configure(function(){
-    server.set("transports", ['xhr-polling']);
-    server.set('polling duration', 10);
-});
+if (!process.env.DISABLE_POLLING) {
+	console.log('Polling');
+	server.configure(function(){
+	    server.set("transports", ['xhr-polling']);
+	    server.set('polling duration', 10);
+	});
+} else {
+	console.log('Polling disabled');
+}
 
 server.set('authorization', function(data, accept) {
     if (data.headers.cookie) {
